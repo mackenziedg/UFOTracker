@@ -1,0 +1,34 @@
+---
+title: Scrape other datasets of interest
+author: Mackenzie Gray
+---
+
+### USAF Base Locations
+
+This snippet will pull the locations of all US Air Force bases <sub><sup>that we know of</sup></sub> from the [Wikipedia article](https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations).
+
+```{r}
+library(rvest)
+library(tidyverse)
+
+## Wikipedia tables can be read in using rvest and following
+## https://www.r-bloggers.com/using-rvest-to-scrape-an-html-table/
+url <- "https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations"
+xpath <- "/html/body/div[3]/div[3]/div[4]/div/table[3]"
+
+df <- url %>%
+    read_html() %>%
+    html_nodes(xpath=xpath) %>%
+    html_table() %>%
+    .[[1]]
+write_csv(df, "../data/raw/usaf_base_locs.csv")
+
+
+## Extract lat/lng from the `Coordinates` column
+df <- df %>%
+    select(one_of(c("Name", "Location", "State", "Coordinates"))) %>%
+    mutate(lat=as.double(str_extract(df$Coordinates, "(?<=/ )[\\d.]+(?=;)")),
+           lng=as.double(str_extract(df$Coordinates, "(?<=; )-[\\d.]+"))) %>%
+    select(-Coordinates)
+write_csv(df, "../data/clean/usaf_base_locs.csv")
+```
