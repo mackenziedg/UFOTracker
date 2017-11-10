@@ -1,6 +1,10 @@
 *~
 project_description.md
-data/clean/
 .Rhistory
 src/*.html
 src/*.pdf
+
+# The only data in the repo should be the scraped ufo sightings
+data/raw/state_bounds/
+data/raw/usaf_base_locs.csv
+data/clean/

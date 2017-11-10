@@ -1,0 +1,56 @@
+---
+title: Scrape other datasets of interest
+author: Mackenzie Gray
+---
+
+### USAF Base Locations
+
+This snippet will pull the locations of all US Air Force bases <sub><sup>that we know of</sup></sub> from the [Wikipedia article](https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations).
+
+```{r}
+library(rvest)
+library(tidyverse)
+
+## Wikipedia tables can be read in using rvest and following
+## https://www.r-bloggers.com/using-rvest-to-scrape-an-html-table/
+url <- "https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations"
+xpath <- "/html/body/div[3]/div[3]/div[4]/div/table[3]"
+
+df <- url %>%
+    read_html() %>%
+    html_nodes(xpath=xpath) %>%
+    html_table() %>%
+    .[[1]]
+write_csv(df, "../../data/raw/usaf_base_locs.csv")
+
+
+## Extract lat/lng from the `Coordinates` column
+df <- df %>%
+    select(one_of(c("Name", "Location", "State", "Coordinates"))) %>%
+    mutate(lat=as.double(str_extract(df$Coordinates, "(?<=/ )[\\d.]+(?=;)")),
+           lng=as.double(str_extract(df$Coordinates, "(?<=; )-[\\d.]+"))) %>%
+    select(-Coordinates)
+write_csv(df, "../../data/clean/usaf_base_locs.csv")
+```
+
+### State shapefiles
+
+The census has shapefiles for US states available at various resolutions. Downloading the [1:20m](http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip) data and extracting it to `<project_root>/data/raw/state_bounds/` we can then run the following to make sure everything is imported and running correctly. This needs the USAF location data to have been downloaded in order to run. 
+
+```{r}
+system("chmod u+x ./pull_extract_shape_bounds")
+system("./pull_extract_shape_bounds")
+
+library(ggplot2)
+library(rgdal)
+
+states <- readOGR("../../data/clean/state_bounds/cb_2016_us_state_20m.shp", layer="cb_2016_us_state_20m")
+df <- read.csv("../../data/clean/usaf_base_locs.csv")
+    
+ggplot() + geom_polygon(data=states, aes(x=long, y=lat, fill=group), color="black") +
+    geom_point(data=df, aes(x=lng, y=lat), color="black", size=3) +
+    xlim(-125, -65) + ylim(22, 50) + guides(fill=FALSE)
+
+```
+
+If everything worked correctly this should produce a map of the US with points for each Air Force base.

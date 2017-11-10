@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Pulls census data of state boundaries and extracts it to <project_root>/data/clean/state_bounds
+# Do not manually run, this is for the Rmd file
+
+FILE="cb_2016_us_state_20m"
+PUTDIR="../../data/clean/state_bounds"
+wget http://www2.census.gov/geo/tiger/GENZ2016/shp/$FILE.zip
+unzip ./$FILE.zip
+rm $FILE.zip
+if ! [ -d $PUTDIR ]
+then
+	mkdir $PUTDIR
+fi
+mv ./$FILE* $PUTDIR
