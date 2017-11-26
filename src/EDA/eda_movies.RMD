@@ -1,0 +1,69 @@
+---
+title: "Eda_Movies"
+author: "Shane Caldwell"
+date: "11/25/2017"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+#pull in alien movies
+alien_movies <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/alien_movies_per_year.csv", header = TRUE)
+
+#pull in sightings
+sightings <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/ufo_sightings.csv", header = TRUE)
+
+```
+
+```{r}
+ggplot(alien_movies, aes(x =year, y =num_movies )) + geom_point(shape=1)
+```
+
+It might be nice to normalize this data somehow. Maybe the percentage of alien movies out of all movies out? Right now we see a kind of linear relationship as the number of movies tends to increase over time. Maybe this will become less apparent if we can get rid of those zeros.
+
+Mackenzie and I had discussed removing all data prior to 1974. This is because the UFO reporting society was founded in 1974, and they wouldn't have live records previous to that. It would all be "popular" events being recorded after the fact.
+
+
+```{r}
+alien_movies_new <- filter(alien_movies, year >= 1974)
+
+ggplot(alien_movies_new, aes(x =year, y =num_movies )) + geom_point(shape=1)
+
+```
+
+Still a definite trend upwards. That could have to do with the number of movies released increasing in general moreso than an overall increase in alien movies. 
+
+Anyway, we have to filter the sightings dataset to find more specific information about our dataset. Currently we can't compare the number of movies to our number of sightings. 
+
+```{r}
+
+fl_sightings <- filter(sightings, tolower(state) == 'fl' )
+fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
+tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
+tmp2 <- sapply(tmp, "[[", 1)
+fl_sightings$year <- as.numeric(tmp2)
+fl_sightings_75 <- filter(fl_sightings, year >= 1975)
+fl_sightings_75 <- filter(fl_sightings, year < 2018)
+
+sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
+
+#sightings_per_year_fl_75$Freq
+df1 <- cbind(sightings_per_year_fl$Freq[5:49], alien_movies_new$num_movies)
+df1 <- as.data.frame(df1)
+
+colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
+ggplot(df1, aes(x =Sightings_Per_Year, y=Alien_Movies_Per_Year )) + geom_point(shape=1)
+```
+
+Not super interesting. I may need to normalize this data. 
+
+```{r}
+df1$Sightings_Per_Year <- df1$Sightings_Per_Year/max(df1$Sightings_Per_Year)
+df1$Alien_Movies_Per_Year <- df1$Alien_Movies_Per_Year/max(df1$Alien_Movies_Per_Year)
+
+ggplot(df1, aes(x =Sightings_Per_Year, y=Alien_Movies_Per_Year )) + geom_point(shape=1)
+```
+
+Fun fact, if you just normalize all the data the plot will look exactly the same!
+
