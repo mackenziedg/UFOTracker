@@ -4,11 +4,16 @@
 
 FILE="cb_2016_us_state_20m"
 PUTDIR="../../data/clean/state_bounds"
+
+# Download the zip file
 wget http://www2.census.gov/geo/tiger/GENZ2016/shp/$FILE.zip
+
+# Extract data, delete the zip
 unzip ./$FILE.zip
 rm $FILE.zip
-if ! [ -d $PUTDIR ]
-then
-	mkdir $PUTDIR
-fi
+
+# Create folder if it doesn't exist, or do nothing if it does
+mkdir -p $PUTDIR
+
+# Move the file to the new folder
 mv ./$FILE* $PUTDIR
