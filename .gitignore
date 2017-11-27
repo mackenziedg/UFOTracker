@@ -2,7 +2,6 @@
 *#
 project_description.md
 .Rhistory
-src/cofactor_scraping/*.html
 src/cofactor_scraping/*.pdf
 
 data/clean/
