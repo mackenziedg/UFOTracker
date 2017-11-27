@@ -7,9 +7,18 @@ author: Mackenzie Gray
 
 This snippet will pull the locations of all US Air Force bases <sub><sup>that we know of</sup></sub> from the [Wikipedia article](https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations).
 
+```{r, echo=FALSE}
+lib <- function(package_name) {
+  if (!require(package_name, character.only = TRUE)) {
+    install.packages(package_name, repos = "http://cran.us.r-project.org")
+    library(package_name, character.only = TRUE)
+  }
+}
+```
+
 ```{r}
-library(rvest)
-library(tidyverse)
+lib('rvest')
+lib('tidyverse')
 
 ## Wikipedia tables can be read in using rvest and following
 ## https://www.r-bloggers.com/using-rvest-to-scrape-an-html-table/
@@ -41,8 +50,8 @@ The census has shapefiles for US states available at various resolutions. Downlo
 system("chmod u+x ./pull_extract_shape_bounds")
 system("./pull_extract_shape_bounds")
 
-library(ggplot2)
-library(rgdal)
+lib('ggplot2')
+lib('rgdal')
 
 states <- readOGR("../../data/clean/state_bounds/cb_2016_us_state_20m.shp", layer="cb_2016_us_state_20m")
 df <- read.csv("../../data/clean/usaf_base_locs.csv")
