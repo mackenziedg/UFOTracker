@@ -67,3 +67,37 @@ ggplot(df1, aes(x =Sightings_Per_Year, y=Alien_Movies_Per_Year )) + geom_point(s
 
 Fun fact, if you just normalize all the data the plot will look exactly the same!
 
+```{r}
+lm.movies <- lm(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
+summary(lm.movies)
+```
+Results here are interesting. Our R-squared isn't incredible, only capturing 19% of the variance in our data. Without other variables in the model, it's difficult to say if the alien movies per year are useful on their own.
+
+```{r}
+library(olsrr)
+ols_bp_test(lm.movies)
+```
+Here we do not reject the probability that the variance is constant. But is this test really capturing the results of the data?
+
+```{r}
+residuals <- resid(lm.movies)
+plot(residuals)
+```
+
+This definitely does not appear to have no pattern! We could easily draw a curve fitting this data. The variance increases the further we go through the function.
+
+```{r}
+qqnorm(lm.movies$residuals)
+qqline(lm.movies$residuals)
+```
+
+The qqplot here suggests our data is not normally distributed. As you can see, the forced normalized values and the given values don't match up. The qqplot indicates significant deviation from normality.
+
+## Test for autocorrelation
+
+```{r}
+library(lmtest)
+results = dwtest(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
+```
+
+There definitely appears to be autocorrelation in the residuals. 
