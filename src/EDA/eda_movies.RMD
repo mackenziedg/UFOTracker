@@ -5,15 +5,22 @@ date: "11/25/2017"
 output: html_document
 ---
 
-```{r}
+```{r setup, include=FALSE}
+
+PROJ_DIR <- '/home/noah/Documents/DS HW/UFOTracker'
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = PROJ_DIR)
+
 library(dplyr)
 library(ggplot2)
+```
+
+```{r}
 #pull in alien movies
-alien_movies <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/alien_movies_per_year.csv", header = TRUE)
-
+alien_movies <- read.csv(file = "./data/raw/alien_movies_per_year.csv", header = TRUE)
 #pull in sightings
-sightings <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/ufo_sightings.csv", header = TRUE)
-
+sightings <- read.csv(file = "./data/raw/ufo_sightings.csv", header = TRUE)
 ```
 
 ```{r}

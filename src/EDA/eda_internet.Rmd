@@ -1,0 +1,115 @@
+---
+title: "eda_internet"
+author: "noah"
+date: "November 27, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+PROJ_DIR <- '/home/noah/Documents/DS HW/UFOTracker'
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = PROJ_DIR)
+
+lib <- function(package_name) {
+  if (!require(package_name, character.only = TRUE)) {
+    install.packages(package_name, repos = "http://cran.us.r-project.org")
+    library(package_name, character.only = TRUE)
+  }
+}
+
+lib('dplyr')
+lib('ggplot2')
+lib('pander')
+panderOptions('table.split.table', Inf)
+```
+
+## Clean up our raw data
+
+# US Internet Coverage
+```{r clean_data}
+# Read in US internet coverage per year
+internet_overall <- read.csv(file = "./data/raw/internet.csv", header = TRUE)
+
+# Read in US internet coverage per year, separate by rurality
+internet_by_rurality <- read.csv(file = "./data/raw/internet_by_rurality.csv", header = TRUE)
+
+# Combine the two into one data frame based on year
+internet <- merge(internet_overall, internet_by_rurality, by = "Year")
+
+# Rename the "Percent" column
+colnames(internet)[2] <- "Avg"
+
+# Visualize the internet table
+pander(internet, style = 'rmarkdown')
+```
+
+# UFO Sightings
+```{r}
+# Write out the merged dataframe into a new csv
+write.csv(internet, file = "./data/clean/internet_merged.csv", row.names = FALSE)
+
+# Read in our response variable, number of UFO sightings (across the US)
+sightings <- read.csv(file = "./data/raw/ufo_sightings.csv", header = TRUE)
+
+# Get rid of useless counter column
+sightings$X <- NULL
+
+# Filter only those sightings in Florida
+fl_sightings <- filter(sightings, tolower(state) == 'fl' )
+fl_sightings$state <- NULL
+
+# Replace the date_time column with a year column
+fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
+tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
+tmp2 <- sapply(tmp, "[[", 1)
+fl_sightings$year <- as.numeric(tmp2)
+fl_sightings$date_time <- NULL
+
+# Get rid of any sightings before 1975
+fl_sightings <- filter(fl_sightings, year >= 1975)
+fl_sightings <- filter(fl_sightings_75, year < 2018)
+
+sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
+
+# Write out the cleaned data into a new csv file
+write.csv(sightings_per_year_fl, file = "./data/clean/sightings_per_year_fl.csv", row.names = FALSE)
+
+# Visualize the sightings table
+pander(head(sightings), style = 'rmarkdown')
+```
+
+# Internet coverage goes up over time. Shocking.
+```{r}
+# Make pretty plots
+g <- ggplot(internet)
+
+g + geom_point(aes(x = Year, y = Avg))
+
+g + geom_point(aes(x = Year, y = Urban))
+
+g + geom_point(aes(x = Year, y = Suburban))
+
+g + geom_point(aes(x = Year, y = Rural))
+```
+
+```{r}
+
+df1 <- cbind(sightings_per_year_fl$Freq, internet$Avg)
+df1 <- as.data.frame(df1)
+
+colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
+
+
+# Make pretty plots
+g <- ggplot()
+
+g + geom_point(aes(x = Year, y = Avg))
+
+g + geom_point(aes(x = Year, y = Urban))
+
+g + geom_point(aes(x = Year, y = Suburban))
+
+g + geom_point(aes(x = Year, y = Rural))
+```
