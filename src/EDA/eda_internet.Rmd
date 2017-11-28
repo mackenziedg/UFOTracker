@@ -45,41 +45,6 @@ colnames(internet)[2] <- "Avg"
 pander(internet, style = 'rmarkdown')
 ```
 
-# UFO Sightings
-```{r}
-# Write out the merged dataframe into a new csv
-write.csv(internet, file = "./data/clean/internet_merged.csv", row.names = FALSE)
-
-# Read in our response variable, number of UFO sightings (across the US)
-sightings <- read.csv(file = "./data/raw/ufo_sightings.csv", header = TRUE)
-
-# Get rid of useless counter column
-sightings$X <- NULL
-
-# Filter only those sightings in Florida
-fl_sightings <- filter(sightings, tolower(state) == 'fl' )
-fl_sightings$state <- NULL
-
-# Replace the date_time column with a year column
-fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
-tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
-tmp2 <- sapply(tmp, "[[", 1)
-fl_sightings$year <- as.numeric(tmp2)
-fl_sightings$date_time <- NULL
-
-# Get rid of any sightings before 1975
-fl_sightings <- filter(fl_sightings, year >= 1975)
-fl_sightings <- filter(fl_sightings_75, year < 2018)
-
-sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
-
-# Write out the cleaned data into a new csv file
-write.csv(sightings_per_year_fl, file = "./data/clean/sightings_per_year_fl.csv", row.names = FALSE)
-
-# Visualize the sightings table
-pander(head(sightings), style = 'rmarkdown')
-```
-
 # Internet coverage goes up over time. Shocking.
 ```{r}
 # Make pretty plots
@@ -94,22 +59,59 @@ g + geom_point(aes(x = Year, y = Suburban))
 g + geom_point(aes(x = Year, y = Rural))
 ```
 
+# UFO Sightings
 ```{r}
+# Write out the merged dataframe into a new csv
+write.csv(internet, file = "./data/clean/internet_merged.csv", row.names = FALSE)
 
-df1 <- cbind(sightings_per_year_fl$Freq, internet$Avg)
-df1 <- as.data.frame(df1)
+# Read in our response variable, number of UFO sightings (across the US)
+sightings <- read.csv(file = "./data/raw/ufo_sightings.csv", header = TRUE)
 
-colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
+# Get rid of useless counter column
+sightings$X <- NULL
+
+# Visualize the sightings table
+pander(head(sightings), style = 'rmarkdown')
 
 
-# Make pretty plots
-g <- ggplot()
 
-g + geom_point(aes(x = Year, y = Avg))
+# Filter only those sightings in Florida
+fl_sightings <- filter(sightings, tolower(state) == 'fl' )
+fl_sightings$state <- NULL
 
-g + geom_point(aes(x = Year, y = Urban))
+# Replace the date_time column with a year column
+fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
+tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
+tmp2 <- sapply(tmp, "[[", 1)
+fl_sightings$Year <- as.numeric(tmp2)
+fl_sightings$date_time <- NULL
 
-g + geom_point(aes(x = Year, y = Suburban))
+# Get rid of any sightings before 1975
+fl_sightings <- fl_sightings %>% filter(Year >= 1975) %>% filter(Year < 2018)
 
-g + geom_point(aes(x = Year, y = Rural))
+# Create new data frame of just frequencies per year in Florida
+sightings_per_year_fl <- as.data.frame(table(fl_sightings$Year))
+colnames(sightings_per_year_fl) <- c("Year", "Freq")
+
+# Write out the cleaned data into a new csv file
+write.csv(sightings_per_year_fl, file = "./data/clean/sightings_per_year_fl.csv", row.names = FALSE)
+
+# Visualize the florida sightings frequency table
+pander(sightings_per_year_fl, style = 'rmarkdown')
+```
+
+# Sightings go up per year in Florida, not independent of time
+```{r}
+ggplot(sightings_per_year_fl) + geom_point(aes(x = Year, y = Freq))
+```
+
+# Plot sightings frequency vs Internet coverage, ignoring variation by year
+```{r}
+# Combine the sightings per year with the internet coverage into one data frame based on year
+internet_sightings <- subset(internet, select = c('Year', 'Avg')) %>% merge(sightings_per_year_fl, by = "Year")
+
+colnames(internet_sightings) <- c("US_Internet_Coverage", "Sightings_Per_Year")
+
+ggplot(internet_sightings) + geom_point(aes(x = US_Internet_Coverage, y = Sightings_Per_Year))
+
 ```
