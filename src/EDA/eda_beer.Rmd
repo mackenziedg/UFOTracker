@@ -1,0 +1,147 @@
+---
+title: "EDA Beer & Alien Sightings"
+author: "Fanny Chow"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(data.table)
+library(tidyr)
+```
+
+
+
+```{r}
+# set paths to data source & read in files
+
+setwd("~/Google Drive/stat/UFOTracker")
+my.path <- "~/Google Drive/stat/UFOTracker"
+beer.path <- "data/raw/brew_count_by_state_1984_2017.csv"
+sightings.path <- "data/raw/ufo_sightings.csv"
+
+beer.raw <- fread(file.path(my.path, beer.path), header=TRUE, na.strings=c("*", ""))
+sightings.raw <- fread(file.path(my.path, sightings.path), header = TRUE, na.strings = c("", "Unknown", "--"))
+
+```
+
+
+```{r}
+# clean up junk at bottom file
+beer.db <- beer.raw %>% 
+  filter(!is.na(STATE)) %>%
+  filter(STATE != "Total") %>% 
+  filter(STATE != "Other") %>% 
+  filter(STATE != "* No reportable data") %>% 
+  filter(STATE != "«This list will be updated quarterly.")
+```
+
+```{r}
+# create proper data types
+beer.db$STATE <- as.factor(beer.db$STATE)
+
+# wide to long format
+olddata_wide <- beer.db
+keycol <- "year"
+valuecol <- "breweries"
+gathercols <- as.character(seq(1984, 2017))
+
+beer.df <- gather_(olddata_wide, keycol, valuecol, gathercols)
+
+```
+
+At a high-level glance, the general trend is increase number of breweries through the years for each s tate. Note that the number of breweries in 2005 will be contingent on the number of breweries in 2004, and there will be autocorrolation through years.   
+```{r}
+beer.df$breweries <- as.numeric(beer.df$breweries)
+```
+
+```{r}
+#breweries.year <- ggplot(beer.df, aes(x = year, y = breweries, group=1))
+#breweries.year + geom_point() + geom_line(aes(color = STATE))  
+
+ggplot() +
+  geom_point(data=beer.df, aes(year, breweries, color=STATE))
+```
+
+
+Let's take a look at the number of breweries in each state through the years sorted by states. Since there's over 50 states we're looking at, it's challenging to discern trends from looking at all the states at once.  
+```{r}
+breweries.year <- ggplot(beer.df, aes(x = year, y = breweries, group=1))
+(p2 <- breweries.year + geom_line() +
+   facet_wrap(~STATE, ncol = 10))
+```
+
+
+Let's focus on the state of Florida through the years. We observe an upward trend and then a sudden dip from the late 90's to 2010.  
+```{r}
+florida.brew.df <- beer.df %>% 
+  filter(STATE == "FL")
+florida.brew.df
+
+plot(florida.brew.df$year, florida.brew.df$breweries)
+
+```
+
+
+
+
+
+
+
+
+Since the range of time in the breweries data is from 1984-2017, let's subset the equivalent years from the sightings data.  
+```{r}
+# clean up sightings data
+fl.sightings <- sightings.raw %>% 
+  filter(state == 'FL') %>% 
+  mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
+  filter(year >= 1984) %>% 
+  filter(year <= 2017) %>% 
+  #group_by(year) %>% 
+  count(year) %>% 
+  rename(sightings_year = n)
+ # mutate(sightings_year = n())
+#group_by(`Student ID`) %>%
+ # mutate(`Dupe Check`= n())
+
+fl.sightings
+#fl.sightings$year <- as.numeric(format(as.Date(fl.sightings$date_time, format="%m/%d/%y"),"%Y"))
+#filter(fl.sightings, year > 1983)
+
+
+#fl.sightings.count <- as.data.frame(table(fl.sightings$year))
+#colnames(fl.sightings.count) <- c("year","sightings_per_year")
+#as.numeric(fl.sightings.count$year)
+#str(fl.sightings.count)
+
+```
+
+Let's take a snapshot of sightings per year in Florida.  
+```{r}
+plot(fl.sightings$year, fl.sightings$sightings_year)
+```
+
+
+
+Let's compare the 2 plots at once. Interesting how the 2 plots follow the same shape until the early 2000s and then diverge drastically aftewards. 
+```{r}
+plot(florida.brew.df$year, florida.brew.df$breweries, type = "l", col="blue")
+par(new=TRUE)
+plot(fl.sightings$year, fl.sightings$sightings_year, type="l", col="orange")
+legend("topleft",legend=c("Breweries", "Sightings"),
+       col=c("blue", "orange"), lty=1:2, cex=0.8)
+
+```
+
+
+
+
+
+
