@@ -3,9 +3,16 @@ title: Analysis of USAF base locations, state populations, and UFO sightings
 author: Mackenzie Gray
 ---
 
+# Describe the motivation here
+
+Who cares?
+
+# Loading and cleaning
+
 First import all of the necessary packages
 
 ```{r, message=F, warning=F}
+library(lmtest)
 library(plyr)
 library(tidyverse)
 library(ggplot2)
@@ -60,10 +67,10 @@ Now that the data is all clean and together, we can begin analysis.
 Although these two variables seems obviously related, it is good practice to double check assumptions.
 
 ```{r}
-(s <- summary(fit1 <- lm(sightings ~ pop, data=df)))
+(s1 <- summary(fit1 <- lm(sightings ~ pop, data=df)))
 ```
 
-Given $R^2 = `r round(s$r.squared, 3)`$, $\beta_{pop} = `r round(s$coefficients[[2, 1]], 5)`$, and a 95% confidence interval for $\beta_{pop} = (`r round(confint(fit1)[2,1], 5)`, `r round(confint(fit1)[2,2], 5)`)$, we can be reasonably confident that a positive correlation does exist between the number of reported UFO sightings in a state since 1974 and the mean population of that state since 1970.
+Given $R^2 = `r round(s1$r.squared, 3)`$, $\beta_{pop} = `r round(s1$coefficients[[2, 1]], 5)`$, and a 95% confidence interval for $\beta_{pop} = (`r round(confint(fit1)[2,1], 5)`, `r round(confint(fit1)[2,2], 5)`)$, we can be reasonably confident that a positive correlation does exist between the number of reported UFO sightings in a state since 1974 and the mean population of that state since 1970.
 
 We can plot this relationship using `ggplot`.
 
@@ -71,13 +78,15 @@ We can plot this relationship using `ggplot`.
 ggplot(data=df, aes(x=pop, y=sightings)) + geom_point() + stat_smooth(method='lm', se=F)
 ```
 
-A number of obvious outliers are noticeable, but otherwise the relationship appears linear. We can graphically futher verify the assumptions of the least squares regression we performed.
+A number of obvious outliers are noticeable, but otherwise the relationship appears linear.
+We can graphically futher verify the assumptions of the least squares regression we performed.
 
 ```{r}
 plot(fit1)
 ```
 
-From the Q-Q plot, we can see that the errors do not appear to be normally distributed, with very large deviations from normal at either end. Additionally, two major outliers with IDs 5 and 32 are visible on the plot of residuals vs leverage. We can identify which states have the largest prediction error.
+From the Q-Q plot, we can see that the errors do not appear to be normally distributed, with very large deviations from normal at either end.
+Additionally, two major outliers with IDs 5 and 32 are visible on the plot of residuals vs leverage. We can identify which states have the largest prediction error.
 
 ```{r}
 (top_resid <- fit1$residuals  %>%
@@ -92,4 +101,59 @@ ggplot(data=df, aes(x=pop, y=sightings)) +
     stat_smooth(method='lm', se=F) +
     geom_text_repel(aes(label=name), data=df[df$name %in% top_resid,])
 
+```
+
+From this we can clearly see California (point number 5 on the diagnostic plots) is a major outlier.
+TODO: More analysis of this here
+
+
+### Number of US Air Force bases vs. population
+
+```{r}
+(s2 <- summary(fit2 <- lm(base_count ~ pop, data=df)))
+```
+
+With an 95% confidence interval for $\beta_{pop} = (`r round(confint(fit2)[2,1], 10)`, `r round(confint(fit2)[2,2], 10)`)$, we can confidently state that there exists a positive relationship between the number of US military bases in a state and the mean population of that state from 1970-2010.
+
+```{r}
+ggplot(data=df, aes(x=pop, y=base_count)) + geom_point() + stat_smooth(method='lm', se=F)
+```
+
+From this graph we can see a loose but definite positive relationship between the two variables.
+
+```{r}
+plot(fit2)
+```
+
+There is a clear pattern in the plot of residuals vs fitted values due to the small number of discrete values which `base_count` can take on.
+The normal Q-Q plot is almost a straight line, except at the high end where the residuals are larger than would be expected for a normal distribution.
+In the plot of residuals vs leverage, California (point number 5) once again stands out as a significant outlier.
+TODO: Analyze more
+
+Additionally, it appears as though the variance in this relationship may be heteroskedastic.
+We can test for this using the Breusch-Pagan test
+
+```{r}
+bptest(fit2)
+```
+
+Although the error appears heteroscedastic, according to the test results there is no significant evidence of heteroscedasticity.
+
+Knowing that a relationship exists between `pop` and `sightings`, as well as `base_count` and `pop`, we can normalize the number of sightings by the population before fitting against `base_count` to account for these relationships. (TODO: can we?)
+
+### Number of USAF bases per state vs sightings per thousand people per state
+
+```{r}
+### Normalize the number of sightings by the population of each state
+df$sightings_per_thousand <- (df$sightings / df$pop) * 1000
+
+(s3 <- summary(fit3 <- lm(sightings_per_thousand ~ base_count, data=df)))
+```
+
+With an 95% confidence interval for $\beta_{base\_count} = (`r round(confint(fit3)[2,1], 3)`, `r round(confint(fit3)[2,2], 3)`)$, we can confidently say there is no relationship between the number of US Air Force bases in a state and the population-adjusted number of reported UFO sightings in that state since 1970.
+
+TODO: Analyze this relationship further
+
+```{r}
+plot(fit3)
 ```
