@@ -110,7 +110,7 @@ plot(myts)
 library(tseries)
 adf.test(myts, k = 3)
 ```
-```{r}
+We fail to reject the null hypothesis, suggesting our data is not stationary. 
 
-```
+So our data is not stationary, our model shows evidence of heteroskedasticity and autocorrelation. What can we do about that?
 
