@@ -23,11 +23,12 @@ bottom = 24.7433195 # south lat
 sightings = sightings[(sightings.lat.between(bottom, top))&(sightings.lon.between(left, right))]
 
 
-m = Basemap(projection='merc', llcrnrlat=bottom, urcrnrlat=top, llcrnrlon=left, urcrnrlon=right, lat_ts=None, resolution='l')
+m = Basemap(projection='merc', llcrnrlat=bottom, urcrnrlat=top, llcrnrlon=left, urcrnrlon=right, lat_ts=None, resolution='i')
 m.drawcoastlines()
 m.drawcountries()
 m.drawstates()
-m.drawmapboundary(color='white')
+m.drawmapboundary(color='black')
 lon, lat = m(sightings.lon.values, sightings.lat.values)
+
 m.scatter(lon, lat, color='#174793', alpha=0.01)
 plt.show()
