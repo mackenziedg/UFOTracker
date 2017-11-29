@@ -17,7 +17,7 @@ sightings <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/ufo_sig
 ```
 
 ```{r}
-ggplot(alien_movies, aes(x =year, y =num_movies )) + geom_point(shape=1)
+ggplot(alien_movies, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1902 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 It might be nice to normalize this data somehow. Maybe the percentage of alien movies out of all movies out? Right now we see a kind of linear relationship as the number of movies tends to increase over time. Maybe this will become less apparent if we can get rid of those zeros.
@@ -28,11 +28,12 @@ Mackenzie and I had discussed removing all data prior to 1974. This is because t
 ```{r}
 alien_movies_new <- filter(alien_movies, year >= 1974)
 
-ggplot(alien_movies_new, aes(x =year, y =num_movies )) + geom_point(shape=1)
+
+ggplot(alien_movies_new, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1974 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
 
 ```
 
-Still a definite trend upwards. That could have to do with the number of movies released increasing in general moreso than an overall increase in alien movies. 
+Still a definite trend upwards. That could have to do with the number of movies released increasing in general moreso than an increase in the genre alien movies specifically. 
 
 Anyway, we have to filter the sightings dataset to find more specific information about our dataset. Currently we can't compare the number of movies to our number of sightings. 
 
@@ -53,25 +54,21 @@ df1 <- cbind(sightings_per_year_fl$Freq[5:49], alien_movies_new$num_movies)
 df1 <- as.data.frame(df1)
 
 colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
-ggplot(df1, aes(x =Sightings_Per_Year, y=Alien_Movies_Per_Year )) + geom_point(shape=1)
+
+ggplot(df1, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "Number of Alien Sightings VS Alien Movies eleased\n1974 - 2018", x = "Alien Movies Released Per Year", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+
 ```
 
-Not super interesting. I may need to normalize this data. 
+Nothing that seems like a line could be drawn through it.  
 
-```{r}
-df1$Sightings_Per_Year <- df1$Sightings_Per_Year/max(df1$Sightings_Per_Year)
-df1$Alien_Movies_Per_Year <- df1$Alien_Movies_Per_Year/max(df1$Alien_Movies_Per_Year)
-
-ggplot(df1, aes(x =Sightings_Per_Year, y=Alien_Movies_Per_Year )) + geom_point(shape=1)
-```
-
-Fun fact, if you just normalize all the data the plot will look exactly the same!
 
 ```{r}
 lm.movies <- lm(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
 summary(lm.movies)
 ```
-Results here are interesting. Our R-squared isn't incredible, only capturing 19% of the variance in our data. Without other variables in the model, it's difficult to say if the alien movies per year are useful on their own.
+Results here are interesting. Our R-squared isn't incredible, only capturing 19% of the variance in our data. Without other variables in the model, it's difficult to say if the alien movies per year are useful on their own. 
+
+### Model Diagnostics
 
 ```{r}
 library(olsrr)
@@ -101,3 +98,19 @@ results = dwtest(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
 ```
 
 There definitely appears to be autocorrelation in the residuals. 
+
+```{r}
+myts <- ts(df1$Sightings_Per_Year, start=c(1975, 1), end=c(2017), frequency=1)
+plot(myts)
+```
+
+## Dickey Fuller Test to determine if data is stationary 
+
+```{r}
+library(tseries)
+adf.test(myts, k = 3)
+```
+```{r}
+
+```
+
