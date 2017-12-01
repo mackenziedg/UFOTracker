@@ -1,0 +1,124 @@
+---
+title: "Process historical entity level data"
+output: html_notebook
+---
+
+Step 0: Read in libraries 
+
+```{r, message=FALSE, warning=FALSE}
+rm(list=ls())
+library(tidyverse)
+library(purrr)
+library(data.table)
+library(janitor)
+
+```
+
+Step 1: Capture a list of all files for SY1415 and SY1516
+```{r}
+
+
+#list.files(my.directory, pattern = "*.csv", full.names = TRUE)
+#files <- list.files("../../../Source/PARCC Comps/", pattern="*.xlsx", full.names=TRUE) 
+#files
+```
+
+Step 2: Read in files and combine
+```{r}
+#read_county_files <- function(filename){
+#     x <- fread(filename, skip=0, na.strings = c("(X)"))
+#     
+#     # obtain the path, which has the year in filename
+#     x <- mutate(x, Filename=sub(my_directory, "", filename))
+#     return(x)
+# }
+
+#combined <- map_df(files, read_county_files)
+
+my.directory <- "~/Google Drive/stat/UFOTracker/data"
+setwd(my.directory)
+
+beer.path <- "raw/brew_count_by_state_1984_2017.csv"
+sightings.path <- "raw/ufo_sightings.csv"
+movies.path <- "raw/alien_movies_per_year.csv"
+gdp.path<- "raw/gdp_per_capita_per_year.csv"
+
+beer.raw <- fread(file.path(my.directory, beer.path), header=TRUE, na.strings=c("*", ""))
+
+sightings.raw <- fread(file.path(my.directory, sightings.path), header = TRUE, na.strings = c("", "Unknown", "--"))
+
+movies.raw <- fread(file.path(my.directory, movies.path), header = TRUE)
+
+gdp.raw <- fread(file.path(my.directory, gdp.path), header = TRUE)
+
+```
+
+
+Step 3: Data cleaning  
+
+
+```{r}
+# clean up file
+beer.db <- beer.raw %>% 
+  filter(!is.na(STATE)) %>%
+  filter(STATE != "Total") %>% 
+  filter(STATE != "Other") %>% 
+  filter(STATE != "* No reportable data") %>% 
+  filter(STATE != "«This list will be updated quarterly.") %>% 
+  rename(state = STATE) %>% 
+  mutate(state = as.factor(state)) %>% 
+  gather_("year", "breweries", as.character(seq(1984, 2017))) %>% 
+  mutate(breweries = as.numeric(breweries)) %>% 
+  filter(year >= 1974) %>% 
+  filter(year <= 2014) %>% 
+  filter(state == "FL") %>% 
+  mutate(year = as.numeric(year))
+  
+```
+
+```{r}
+sightings.db <- sightings.raw %>% 
+  filter(state=='FL') %>% 
+  mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
+  filter(year >= 1974) %>% 
+  filter(year <= 2014) %>%
+  count(year) %>% 
+  rename(sightings_year = n)
+  
+```
+
+
+```{r}
+movies.db <- movies.raw %>% 
+  filter(year >= 1974) %>% 
+  filter(year <= 2014)
+```
+
+
+```{r}
+gdp.db <- gdp.raw %>% 
+  clean_names() %>% 
+  rename(year = year_and_category) %>% 
+  filter(year >= 1975) %>% 
+  select(year, per_capita_gdp_current)
+```
+
+
+Join files together
+```{r}
+all.florida.df <- gdp.db %>%
+  left_join(movies.db, by = c("year" = "year")) %>% 
+  left_join(beer.db, by=c("year" = "year")) %>% 
+  left_join(sightings.db, by=c("year" = "year"))
+```
+
+
+
+
+
+Step 4: Write out
+```{r}
+write_csv(all.florida.df, "raw/all_florida.csv")
+
+
+```
