@@ -17,6 +17,7 @@ library(plyr)
 library(tidyverse)
 library(ggplot2)
 library(ggrepel)
+library(GGally)
 library(lubridate)
 library(zoo)
 ```
@@ -61,6 +62,23 @@ df <- data.frame(sightings=sightings$n, base_count=base_locs$n, pop=state_pops, 
 
 ## Statistical analysis
 Now that the data is all clean and together, we can begin analysis. 
+
+### Initial EDA
+
+We can create a pairplot of the quantitative variables to get a rough look at how population and number of Air Force bases relate to the number of UFO sightings.
+It is reasonable to assume that states with a higher population will have more bases and more sightings just by virtue of having more people living there.
+This can be confirmed using `ggpairs` from the `GGally` package.
+
+```{r}
+ggpairs(df[,c("base_count", "pop", "sightings")])
+```
+
+From this we can make a few initial observations.
+It seems as though `pop` is relatively correlated with both `sightings` and `base_count` ($R^2 = 0.456$ and $0.338$, respectively).
+The relationship between `base_count` and `pop` does not appear entirely linear however.
+Additionally, it seems as though this relationship may have some degree of hetereoscedasticity.
+It also appears, however, that `base_count` and `sightings` are correlated with $R^2 = 0.315$.
+This suggests multicolinearlity between the predictor variables `base_count` and `pop`, which will complicate matters further on.
 
 ### State populations vs number of sightings
 
@@ -130,7 +148,7 @@ The normal Q-Q plot is almost a straight line, except at the high end where the 
 In the plot of residuals vs leverage, California (point number 5) once again stands out as a significant outlier.
 TODO: Analyze more
 
-Additionally, it appears as though the variance in this relationship may be heteroskedastic.
+Additionally, it appears as though the variance in this relationship may be heteroscedastic.
 We can test for this using the Breusch-Pagan test
 
 ```{r}
@@ -153,6 +171,13 @@ df$sightings_per_thousand <- (df$sightings / df$pop) * 1000
 With an 95% confidence interval for $\beta_{base\_count} = (`r round(confint(fit3)[2,1], 3)`, `r round(confint(fit3)[2,2], 3)`)$, we can confidently say there is no relationship between the number of US Air Force bases in a state and the population-adjusted number of reported UFO sightings in that state since 1970.
 
 TODO: Analyze this relationship further
+
+```{r}
+ggplot(data=df, aes(x=base_count, y=sightings_per_thousand)) + geom_point() + stat_smooth(method='lm', se=F)
+```
+
+Graphically we can confirm the F-test results that there is little relationship between the two variables.
+
 
 ```{r}
 plot(fit3)

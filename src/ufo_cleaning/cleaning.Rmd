@@ -43,6 +43,4 @@ ggplot(data=tin, aes(x=dt, y=n, color=location)) + geom_line() + xlim(year(ymd("
 
 ```{r}
 sighting_locs <- geocode(paste(df$city, df$state, sep=", "))[c("lon", "lat")]
-
-
 ```
