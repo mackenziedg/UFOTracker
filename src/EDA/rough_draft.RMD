@@ -230,12 +230,12 @@ fl_sightings_75 <- filter(fl_sightings, year < 2018)
 sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
 
 #sightings_per_year_fl_75$Freq
-df1 <- cbind(sightings_per_year_fl$Freq[5:49], alien_movies_new$num_movies)
-df1 <- as.data.frame(df1)
+movies_sightings <- cbind(sightings_per_year_fl$Freq, alien_movies_new$num_movies)
+movies_sightings <- as.data.frame(movies_sightings)
 
-colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
+colnames(movies_sightings) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
 
-ggplot(df1, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "Number of Alien Sightings VS Alien Movies eleased\n1974 - 2018", x = "Alien Movies Released Per Year", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+ggplot(movies_sightings, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "Number of Alien Sightings VS Alien Movies eleased\n1974 - 2018", x = "Alien Movies Released Per Year", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 There seem to be several significant outliers. It appears one year there were over 600 alien sightings, but almost no alien movies released. 
@@ -275,14 +275,14 @@ fl_sightings_75 <- filter(fl_sightings_75, year <= 2014)
 sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
 
 gdp_per_capita <- filter(gdp_per_capita, Year.and.category >= 1974)
-df1 <- cbind(sightings_per_year_fl$Freq,gdp_per_capita$Per.capita.GDP..current....)
-df1 <- as.data.frame(df1)
+gdp_sightings <- cbind(sightings_per_year_fl$Freq,gdp_per_capita$Per.capita.GDP..current....)
+gdp_sightings <- as.data.frame(gdp_sightings)
 
-colnames(df1) <- c("Sightings_Per_Year", "GDP_Per_Capita")
+colnames(gdp_sightings) <- c("Sightings_Per_Year", "GDP_Per_Capita")
 
 df1$Sightings_Per_Year
 
-gdp.results <- lm(Sightings_Per_Year ~ GDP_Per_Capita, data = df1)
+gdp.results <- lm(Sightings_Per_Year ~ GDP_Per_Capita, data = gdp_sightings)
 
 ggplot(df1, aes(x =df1$GDP_Per_Capita, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "GDP Per Capita VS UFO Sightings Per Year\n1974 - 2018", x = "GDP Per Capita", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -298,6 +298,12 @@ $R^2$ is looking much better than it did with our aliens_movies data, capturing 
 ## Portion of population with internet access by year
 
 # Data Analysis
+
+To create one dataset, we'll 
+```{r}
+florida_aliens <- cbind(gdp_sightings$Sightings_Per_Year, gdp_sightings$GDP_Per_Capita, )
+```
+
 
 ## Variable Selection
 
