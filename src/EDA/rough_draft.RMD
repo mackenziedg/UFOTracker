@@ -15,13 +15,22 @@ urlcolor: blue
 fontsize: 11pt 
 ---
 
+
+
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
+library(data.table)
+library(tidyr)
+
 ```
 
 # Introduction
+
+Despite the U.S. government's explicit expression of disinterest in U.F.O. research, U.F.O. Sightings have sparked interest in Americans from coast-to-coast. Avid U.F.O. enthusiasists have collected data on U.F.O. sightings throughout the years at the National U.F.O. Reporting Center. Our data analysis explores what factors or demographics make an American more likely to report a U.F.O. sighting? And what common characteristics do U.F.O. sighters share?  
 
 Our group set out to create a model to predict UFO sightings by a variety of cofactors. This was a case where the project and the analysis were created by the data at hand rather than a starting from a question.
 
@@ -57,7 +66,129 @@ To even know about the UFO reporting center's existence, you need internet acces
 
 # EDA 
 
-## Breweries Per State
+## Breweries Per State  
+```{r}
+# set paths to data source & read in files
+
+setwd("~/Google Drive/stat/UFOTracker")
+my.path <- "~/Google Drive/stat/UFOTracker"
+beer.path <- "data/raw/brew_count_by_state_1984_2017.csv"
+sightings.path <- "data/raw/ufo_sightings.csv"
+
+beer.raw <- fread(file.path(my.path, beer.path), header=TRUE, na.strings=c("*", ""))
+sightings.raw <- fread(file.path(my.path, sightings.path), header = TRUE, na.strings = c("", "Unknown", "--"))
+```
+
+
+```{r}
+# clean up junk at bottom file
+beer.db <- beer.raw %>% 
+  filter(!is.na(STATE)) %>%
+  filter(STATE != "Total") %>% 
+  filter(STATE != "Other") %>% 
+  filter(STATE != "* No reportable data") %>% 
+  filter(STATE != "«This list will be updated quarterly.")
+```
+
+
+```{r}
+# create proper data types
+beer.db$STATE <- as.factor(beer.db$STATE)
+
+# wide to long format
+olddata_wide <- beer.db
+keycol <- "year"
+valuecol <- "breweries"
+gathercols <- as.character(seq(1984, 2017))
+
+beer.df <- gather_(olddata_wide, keycol, valuecol, gathercols)
+
+```
+
+
+At a high-level glance, the general trend is increase number of breweries through the years for each s tate. Note that the number of breweries in 2005 will be contingent on the number of breweries in 2004, and there will be autocorrolation through years.   
+```{r}
+beer.df$breweries <- as.numeric(beer.df$breweries)
+```
+
+```{r}
+(ggplot() +
+  geom_point(data=beer.df, aes(year, breweries, color=STATE)))
+```
+
+
+Let's take a look at the number of breweries in each state through the years sorted by states. Since there's over 50 states we're looking at, it's challenging to discern trends from looking at all the states at once.  
+```{r}
+breweries.year <- ggplot(beer.df, aes(x = year, y = breweries, group=1))
+(p2 <- breweries.year + geom_line() +
+   facet_wrap(~STATE, ncol = 10))
+```
+
+
+Let's focus on the state of Florida through the years. We observe an upward trend and then a sudden dip from the late 90's to 2010.  
+```{r}
+florida.brew.df <- beer.df %>% 
+  filter(STATE == "FL")
+florida.brew.df
+
+plot(florida.brew.df$year, florida.brew.df$breweries)
+
+```
+
+
+
+
+Since the range of time in the breweries data is from 1984-2017, let's subset the equivalent years from the sightings data.  
+```{r}
+# clean up sightings data
+fl.sightings <- sightings.raw %>% 
+  filter(state == 'FL') %>% 
+  mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
+  filter(year >= 1984) %>% 
+  filter(year <= 2017) %>% 
+  #group_by(year) %>% 
+  count(year) %>% 
+  rename(sightings_year = n)
+
+```
+
+Let's take a snapshot of sightings per year in Florida.  
+```{r}
+plot(fl.sightings$year, fl.sightings$sightings_year, type="l")
+```
+
+
+
+Let's compare the 2 plots at once. Interesting how the 2 plots follow the same shape until the early 2000s and then diverge drastically afterwards. It makes sense to see an overall trend of increased interest in breweries over time.   
+```{r}
+plot(florida.brew.df$year, florida.brew.df$breweries, type = "l", col="blue")
+par(new=TRUE)
+plot(fl.sightings$year, fl.sightings$sightings_year, type="l", col="orange")
+legend("topleft",legend=c("Breweries", "Sightings"),
+       col=c("blue", "orange"), lty=1:2, cex=0.8)
+
+```
+
+
+In order to stabilize the variance, we will transform the data with a log transformation. Notice how the the residuals do not vary as much and the variance is closer to constant now.  
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Alien Movies Per Year
 
@@ -178,7 +309,18 @@ $R^2$ is looking much better than it did with our aliens_movies data, capturing 
 
 ## Results
 
-## Future Work
+## Future Work  
+
+### Implementing Advanced Spatial-Temporal & Time-Series Models  
+With the limited scope of our understanding of statistics, we are unable to compare all 5 explanatory factors with the predicted variable, sightings per year. As we learn more advanced statistical techniques, we can come back to this analysis and improve on modelling with spatial and time dependencies.  
+
+### Investigate Most Popular Alien Movies  
 Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens"" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
 
-# Works Cited
+
+
+
+
+
+
+# Works Cited  

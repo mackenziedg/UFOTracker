@@ -1,7 +1,10 @@
 ---
 title: "EDA Beer & Alien Sightings"
 author: "Fanny Chow"
-output: html_document
+output:
+  pdf_document: default
+  html_document:
+      keep_md: true
 ---
 
 ```{r setup, include=FALSE}
@@ -125,12 +128,12 @@ fl.sightings
 
 Let's take a snapshot of sightings per year in Florida.  
 ```{r}
-plot(fl.sightings$year, fl.sightings$sightings_year)
+plot(fl.sightings$year, fl.sightings$sightings_year, type="l")
 ```
 
 
 
-Let's compare the 2 plots at once. Interesting how the 2 plots follow the same shape until the early 2000s and then diverge drastically aftewards. 
+Let's compare the 2 plots at once. Interesting how the 2 plots follow the same shape until the early 2000s and then diverge drastically afterwards. It makes sense to see an overall trend of increased interest in breweries over time.   
 ```{r}
 plot(florida.brew.df$year, florida.brew.df$breweries, type = "l", col="blue")
 par(new=TRUE)
@@ -139,6 +142,19 @@ legend("topleft",legend=c("Breweries", "Sightings"),
        col=c("blue", "orange"), lty=1:2, cex=0.8)
 
 ```
+
+
+In order to stabilize the variance, we will transform the data with a log transformation. Notice how the the residuals do not vary as much and the variance is closer to constant now.  
+
+```{r}
+
+```
+
+
+
+
+
+Let's use check for autocorrelation between the years using a statistical test. 
 
 
 
