@@ -1,0 +1,74 @@
+---
+title: "Predicting UFO Sightings"
+author: "Shane Caldwell, Fanny Chow, Mackenzie Gray, Noah Johnson"
+date: "11/30/2017"
+output:
+  pdf_document:
+    latex_engine: xelatex
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+  html_document:
+    toc: yes
+linkcolor: blue
+urlcolor: blue
+fontsize: 11pt 
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+Our group set out to create a model to predict UFO sightings by a variety of cofactors. This was a case where the project and the analysis were created by the data at hand rather than a starting from a question.
+
+The [National UFO Reporting Center](http://www.nuforc.org/webreports.html), established in 1974,  has put together a database for citizens to submit reports of unidentified flying object sightings. One can submit reports online, but they also have a hotline that can be called at any time, and the information from the report will be placed into the database. Regardless of the medium the report is received in, it will be filtered to confirm it isn't a "hoax".
+
+The database is moderately sized, with over 80,000 observations of reports. Reports include a timestamp, a description of the aircraft, the state and city the report came from, and the duration of the report. 
+
+Our interest was in finding covariates to help us predict the number of reports for a specific state during a specific year. This would involve cleaning the web-scraped UFO dataset and mutating it into something closer to what we needed. It also involved carefully choosing cofactors - not a lot of literature on UFOs sightings and their trends to lean on!
+
+# The Data
+
+For independent variables, we ended up choosing number of breweries in a state per year, the number of alien movies released per year, per capita gdp per year, state population, portion of the population with internet access, and mean distance from military bases. Below, we argue for the "theoretical" inclusion of each variable and explain both why we chose it, where we found the data, and how we went about cleaning it. 
+
+## Breweries Per State Per Year
+
+Alcohol inhibits our perceptions. If you've been out drinking, perhaps you're more likely to think you saw a UFO instead of stopping at a more reasonable explanation. If there are more breweries in your state, it's more likely you'll be drinking. 
+
+## Alien Movies Per Year
+
+How does culture affect people's perceptions of the "supernatural"? When trailers for alien movies have been playing on TV particularly frequently for a given year, are you more likely to have aliens playing in the back of your mind when you see something in the sky you can't explain? Does watching sci-fi movies make it more likely that you turn to an organization like the UFO Reporting Center when something bright is in the sky?
+
+Scraping for the number of alien movies released a year would be difficult, but luckily [wikipedia](https://en.wikipedia.org/wiki/List_of_films_featuring_extraterrestrials) has a list already compiled. While there is no way the list could be complete, it features movies from years as far back as 1902. The wikipedia table was scraped and turned into a csv file and a simple python script was written to bin the frequency of movies by year to create the final dataset.
+
+## Mean Distance from Military Base Location
+
+## Per Capita GDP
+
+Is "seeing things in the sky" a poor man's game? Does the wealth of a particular state influence how they spend their time? Perhaps those with less money have nothing to do but sit outside and look into the sky?
+
+## Portion of population with internet access by year
+
+To even know about the UFO reporting center's existence, you need internet access. If you see a UFO and don't have access to the internet, it's unlikely you'd ever find the hotline to call to report it. It would just end up as a story you told your friends rather than a report in the UFO database. 
+
+# EDA 
+
+## Breweries Per State
+
+## Alien Movies Per Year
+
+## Mean Distance From Military Base Location
+
+## Per Capita GDP
+
+## Portion of population with internet access by year
+
+# Variable Selection
+
+# Model Selection
+
+# Validation
+
+# Conclusion and Future Work
