@@ -23,14 +23,12 @@ fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
 tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
 tmp2 <- sapply(tmp, "[[", 1)
 fl_sightings$year <- as.numeric(tmp2)
-fl_sightings_75 <- filter(fl_sightings, year >= 1975)
+fl_sightings_75 <- filter(fl_sightings_75, year >= 1974)
 fl_sightings_75 <- filter(fl_sightings_75, year <= 2014)
 
 sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
 
-#sightings_per_year_fl_75$Freq
-
-gdp_per_capita <- filter(gdp_per_capita, Year.and.category >= 1975)
+gdp_per_capita <- filter(gdp_per_capita, Year.and.category >= 1974)
 df1 <- cbind(sightings_per_year_fl$Freq,gdp_per_capita$Per.capita.GDP..current....)
 df1 <- as.data.frame(df1)
 
@@ -38,6 +36,11 @@ colnames(df1) <- c("Sightings_Per_Year", "GDP_Per_Capita")
 
 gdp.results <- lm(Sightings_Per_Year ~ GDP_Per_Capita, data = df1)
 
-plot(df1$GDP_Per_Capita, df1$Sightings_Per_Year)
+ggplot(df1, aes(x =df1$GDP_Per_Capita, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "GDP Per Capita VS UFO Sightings Per Year\n1974 - 2018", x = "GDP Per Capita", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+
+```
+```{r}
+lm.fit <- lm(Sightings_Per_Year ~ GDP_Per_Capita,data = df1)
+summary(lm.fit)
 ```
 
