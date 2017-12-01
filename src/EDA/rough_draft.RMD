@@ -17,6 +17,8 @@ fontsize: 11pt
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(ggplot2)
 ```
 
 # Introduction
@@ -59,16 +61,75 @@ To even know about the UFO reporting center's existence, you need internet acces
 
 ## Alien Movies Per Year
 
+```{r}
+#pull in alien movies
+alien_movies <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/alien_movies_per_year.csv", header = TRUE)
+sightings <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/ufo_sightings.csv", header = TRUE)
+
+ggplot(alien_movies, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1902 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+One big problem right off the bat - a lot of the early years are only zeros. After the 1902 film (a silent film known as "A Trip to the Moon", if you were curious) is followed by a large number of empty slots. 
+
+Luckily, since the UFO reporting society was founded in 1974, we decided to remove all variables prior to this year. Reports before this year appear in the dataset, but as discussed above we determined these reports would not be live records. They would be "popular" events that were recorded after the fact, or incidents reported years after they happened. Let's see if that improves the look of our scatterpplot.
+
+
+```{r}
+alien_movies_new <- filter(alien_movies, year >= 1974)
+
+
+ggplot(alien_movies_new, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1974 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+Still a definite trend upwards. That could have to do with the number of movies released increasing in general each year moreso than an increase in the genre alien movies specifically. 
+
+Anyway, we have to filter the sightings dataset to find more specific information about our dataset. Currently we can't compare the number of movies to our number of sightings. Let's filter the dataset down to sightings taking place in Florida since 1974 and see how they compare to the number of movies released each year. 
+
+```{r}
+
+fl_sightings <- filter(sightings, tolower(state) == 'fl' )
+fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
+tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
+tmp2 <- sapply(tmp, "[[", 1)
+fl_sightings$year <- as.numeric(tmp2)
+fl_sightings_75 <- filter(fl_sightings, year >= 1975)
+fl_sightings_75 <- filter(fl_sightings, year < 2018)
+
+sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
+
+#sightings_per_year_fl_75$Freq
+df1 <- cbind(sightings_per_year_fl$Freq[5:49], alien_movies_new$num_movies)
+df1 <- as.data.frame(df1)
+
+colnames(df1) <- c("Sightings_Per_Year", "Alien_Movies_Per_Year")
+
+ggplot(df1, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "Number of Alien Sightings VS Alien Movies eleased\n1974 - 2018", x = "Alien Movies Released Per Year", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+There seem to be several significant outliers. It appears one year there were over 600 alien sightings, but almost no alien movies released. 
+
+
+
 ## Mean Distance From Military Base Location
 
 ## Per Capita GDP
 
 ## Portion of population with internet access by year
 
-# Variable Selection
+# Data Analysis
 
-# Model Selection
+## Variable Selection
 
-# Validation
+## Model Selection
 
-# Conclusion and Future Work
+## Validation
+
+# Conclusion
+
+## Results
+
+## Future Work
+Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens"" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
+
+# Works Cited
