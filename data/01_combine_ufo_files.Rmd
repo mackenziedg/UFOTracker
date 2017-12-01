@@ -1,5 +1,5 @@
 ---
-title: "Process historical entity level data"
+title: "Process all the data"
 output: html_notebook
 ---
 
@@ -14,27 +14,9 @@ library(janitor)
 
 ```
 
-Step 1: Capture a list of all files for SY1415 and SY1516
+
+Step 2: Read in files
 ```{r}
-
-
-#list.files(my.directory, pattern = "*.csv", full.names = TRUE)
-#files <- list.files("../../../Source/PARCC Comps/", pattern="*.xlsx", full.names=TRUE) 
-#files
-```
-
-Step 2: Read in files and combine
-```{r}
-#read_county_files <- function(filename){
-#     x <- fread(filename, skip=0, na.strings = c("(X)"))
-#     
-#     # obtain the path, which has the year in filename
-#     x <- mutate(x, Filename=sub(my_directory, "", filename))
-#     return(x)
-# }
-
-#combined <- map_df(files, read_county_files)
-
 my.directory <- "~/Google Drive/stat/UFOTracker/data"
 setwd(my.directory)
 
@@ -55,7 +37,6 @@ gdp.raw <- fread(file.path(my.directory, gdp.path), header = TRUE)
 
 
 Step 3: Data cleaning  
-
 
 ```{r}
 # clean up file
@@ -111,8 +92,6 @@ all.florida.df <- gdp.db %>%
   left_join(beer.db, by=c("year" = "year")) %>% 
   left_join(sightings.db, by=c("year" = "year"))
 ```
-
-
 
 
 
