@@ -109,11 +109,60 @@ ggplot(df1, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) + geom_point(
 
 There seem to be several significant outliers. It appears one year there were over 600 alien sightings, but almost no alien movies released. 
 
+```{r}
+lm.movies <- lm(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
+summary(lm.movies)
+```
+
+Results here are interesting. Our R-squared isn't incredible, only capturing 19% of the variance in our data. Without other variables in the model, it's difficult to say if the alien movies per year are useful on their own. 
+
+```{r}
+residuals <- resid(lm.movies)
+plot(residuals)
+```
+
+This definitely does not appear to have no pattern! We could easily draw a curve fitting this data. The variance increases the further we go through the function. Because of the pattern in the error, believe there are other variables in the true model that we're currently missing. This isn't terrible news, because we certainly plan on adding more!
 
 
 ## Mean Distance From Military Base Location
 
 ## Per Capita GDP
+
+Per Capita GDP for the United States was pulled from [Open Data Network](https://www.opendatanetwork.com/dataset/data.hawaii.gov/qnar-gix3). Real GDP is an inflation-adjusted measure of each State’s gross product that is based on national prices for the goods and services produced within that State. This price is presented in current dollars at the time of the dataset's creation (last updated August 2016). Estimate of the population is based on midyear measurements from the Censue Bureau. 
+
+```{r}
+gdp_per_capita <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/gdp_per_capita_per_year.csv", header = TRUE)
+
+fl_sightings <- filter(sightings, tolower(state) == 'fl' )
+fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
+tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
+tmp2 <- sapply(tmp, "[[", 1)
+fl_sightings$year <- as.numeric(tmp2)
+fl_sightings_75 <- filter(fl_sightings, year >= 1974)
+fl_sightings_75 <- filter(fl_sightings_75, year <= 2014)
+
+sightings_per_year_fl <- as.data.frame(table(fl_sightings_75$year))
+
+gdp_per_capita <- filter(gdp_per_capita, Year.and.category >= 1974)
+df1 <- cbind(sightings_per_year_fl$Freq,gdp_per_capita$Per.capita.GDP..current....)
+df1 <- as.data.frame(df1)
+
+colnames(df1) <- c("Sightings_Per_Year", "GDP_Per_Capita")
+
+df1$Sightings_Per_Year
+
+gdp.results <- lm(Sightings_Per_Year ~ GDP_Per_Capita, data = df1)
+
+ggplot(df1, aes(x =df1$GDP_Per_Capita, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "GDP Per Capita VS UFO Sightings Per Year\n1974 - 2018", x = "GDP Per Capita", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+The scatterplot suggests that some kind of polynomial might fit the data best - a cubic term comes to mind. However, it's too soon for us to worry about modeling this term before we get a look at the a full model. 
+
+```{r}
+lm.fit <- lm(Sightings_Per_Year ~ GDP_Per_Capita,data = df1)
+summary(lm.fit)
+```
+$R^2$ is looking much better than it did with our aliens_movies data, capturing over 50% of the variation. 
 
 ## Portion of population with internet access by year
 
