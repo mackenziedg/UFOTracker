@@ -68,15 +68,11 @@ To even know about the UFO reporting center's existence, you need internet acces
 
 ## Breweries Per State  
 ```{r}
-# set paths to data source & read in files
+beer.path <- "/Users/shane/Documents/UFOTracker/data/raw/brew_count_by_state_1984_2017.csv"
+sightings.path <- "/Users/shane/Documents/UFOTracker/data/raw/ufo_sightings.csv"
 
-setwd("~/Google Drive/stat/UFOTracker")
-my.path <- "~/Google Drive/stat/UFOTracker"
-beer.path <- "data/raw/brew_count_by_state_1984_2017.csv"
-sightings.path <- "data/raw/ufo_sightings.csv"
-
-beer.raw <- fread(file.path(my.path, beer.path), header=TRUE, na.strings=c("*", ""))
-sightings.raw <- fread(file.path(my.path, sightings.path), header = TRUE, na.strings = c("", "Unknown", "--"))
+beer.raw <- fread(file.path(beer.path), header=TRUE, na.strings=c("*", ""))
+sightings.raw <- fread(file.path(sightings.path), header = TRUE, na.strings = c("", "Unknown", "--"))
 ```
 
 
@@ -241,7 +237,7 @@ ggplot(movies_sightings, aes(x =Alien_Movies_Per_Year, y =Sightings_Per_Year )) 
 There seem to be several significant outliers. It appears one year there were over 600 alien sightings, but almost no alien movies released. 
 
 ```{r}
-lm.movies <- lm(Sightings_Per_Year~Alien_Movies_Per_Year, data = df1)
+lm.movies <- lm(Sightings_Per_Year~Alien_Movies_Per_Year, data = movies_sightings)
 summary(lm.movies)
 ```
 
@@ -280,17 +276,15 @@ gdp_sightings <- as.data.frame(gdp_sightings)
 
 colnames(gdp_sightings) <- c("Sightings_Per_Year", "GDP_Per_Capita")
 
-df1$Sightings_Per_Year
-
 gdp.results <- lm(Sightings_Per_Year ~ GDP_Per_Capita, data = gdp_sightings)
 
-ggplot(df1, aes(x =df1$GDP_Per_Capita, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "GDP Per Capita VS UFO Sightings Per Year\n1974 - 2018", x = "GDP Per Capita", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
+ggplot(gdp_sightings, aes(x =GDP_Per_Capita, y =Sightings_Per_Year )) + geom_point(shape=1) + labs( title = "GDP Per Capita VS UFO Sightings Per Year\n1974 - 2018", x = "GDP Per Capita", y = "UFO Sightings Per Year") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
 The scatterplot suggests that some kind of polynomial might fit the data best - a cubic term comes to mind. However, it's too soon for us to worry about modeling this term before we get a look at the a full model. 
 
 ```{r}
-lm.fit <- lm(Sightings_Per_Year ~ GDP_Per_Capita,data = df1)
+lm.fit <- lm(Sightings_Per_Year ~ GDP_Per_Capita,data = gdp_sightings)
 summary(lm.fit)
 ```
 $R^2$ is looking much better than it did with our aliens_movies data, capturing over 50% of the variation. 
@@ -298,6 +292,8 @@ $R^2$ is looking much better than it did with our aliens_movies data, capturing 
 ## Portion of population with internet access by year
 
 # Data Analysis
+
+## Model Selection
 
 All the data discussed in the EDA section was pulled into one dataset to be imported into R.  
 ```{r}
@@ -339,6 +335,10 @@ BIC (Bayesian Information Criterion) does well with judging the best model for t
 
 A small value of CP is associated with a relatively precise model. The smallest CP here is associated with our model that drops the number of alien movies. 
 
+This isn't surprising. The movies only model we created earlier did not seem to have impressive predictability. It is also worth noting it only addresses the raw number of movies coming out, and they are in no way weighted by their popularity in the popular consciousness. Due to these flaws, we do not see a strong theoretical reason these values should be included in the model. 
+
+Because of this, we feel it is acceptable to drop the number of movies from the model and select the model with the lowest value for Mallow's CP.
+
 ```{r}
 best.fl.model <- lm(sightings_year ~ per_capita_gdp_current + breweries, data = all_florida)
 
@@ -346,16 +346,32 @@ summary(best.fl.model)
 plot(best.fl.model$residuals)
 ```
 
+## Diagnostics
 
-## Variable Selection
+Just because we've use model selection to choose the best model doesn't mean we have a perfect model. 
 
-## Model Selection
+In fact, for us to put faith in our least squares regression model there are a variety of assumptions we've made. The error terms are supposed to be independent. The error should be normally distributed. The errors should have a constant variance. We don't have a way to know the true error, so we will use the residuals for the model as an approximation of the error. 
 
-## Validation
+If these assumptions are violated, we could have multicollinearity in our models (indicating our independent variables are correlated), we could have heteroskedasticity, or patterns in the residuals suggesting missing independent variables in the models.
+
+## Pairwise Scatterplots 
+
+```{r}
+plot(all_florida)
+```
+
+
+## Cross-Validation
+
+(TBD - using the model we've made to predict the values of sightings for other states as part of cross-validation)
 
 # Conclusion
 
 ## Results
+
+It is likely that the true value we are measuring is population. A greater number of breweries is most likely capturing the actual value of interest, which is the population of the state. A state with a higher population is more likely to more breweries. This does not necessarily capture the "amount of alchohol consumed per capita" that we were interested in capturing.
+
+Still, understanding we may not have created a model allowing for statistical inference, we still have some predictive power. 
 
 ## Future Work  
 
@@ -364,15 +380,13 @@ With the limited scope of our understanding of statistics, we are unable to comp
 
 ### Greater Sample Size
 
-The number of sightings was healthy, over 80,000 reports filed. However, the amount of
+The number of sightings was healthy, over 80,000 reports filed. However, the other data was highly constricted in the amount of years it contained, some having as few as 15 observations. This is insufficient to create the kind of robust model that would be effective for all 50 states.
+
+### Investigate Other States
+
+Here, we identified 5 states that were "super states" in their number of sightings as identified as the density of sightings per state. It may be the case that the number of sightings in these super states and lesser states are fundamentally different, requiring a different model. Or, the "super state" identification may actually be a variable that needs to be considered with a dummy variable to change the intercept for as oppossed to "regular" states.
 
 ### Investigate Most Popular Alien Movies  
-Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens"" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
-
-
-
-
-
-
+Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
 
 # Works Cited  
