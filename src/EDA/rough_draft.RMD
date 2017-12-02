@@ -25,7 +25,7 @@ library(dplyr)
 library(ggplot2)
 library(data.table)
 library(tidyr)
-
+library(leaps)
 ```
 
 # Introduction
@@ -299,9 +299,51 @@ $R^2$ is looking much better than it did with our aliens_movies data, capturing 
 
 # Data Analysis
 
-To create one dataset, we'll 
+All the data discussed in the EDA section was pulled into one dataset to be imported into R.  
 ```{r}
-florida_aliens <- cbind(gdp_sightings$Sightings_Per_Year, gdp_sightings$GDP_Per_Capita, )
+all_florida <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/all_florida.csv", header = TRUE)
+all_florida <- filter(all_florida, year >= 1998)
+
+internet_rurality <- read.csv(file = "/Users/shane/Documents/UFOTracker/data/raw/internet_by_rurality.csv", header = TRUE)
+
+all.model <- lm(sightings_year ~ per_capita_gdp_current + breweries + num_movies, data = all_florida)
+summary(all.model)
+plot(all.model$residuals)
+```
+
+Unfortunately, there are several NAs in our database which makes it difficult to use all the variables in our model. Internet by rurality only exists for 2000 to 2015, which is a very small sample size. 
+
+Since we're choosing to only model Florida as a time series, the base distance from an air force base will also not make sense to include in the model. 
+
+```{r}
+allpossreg <- regsubsets(sightings_year ~ per_capita_gdp_current + breweries + num_movies, nbest=6, data=all_florida)
+
+aprout <- summary(allpossreg)
+
+with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3)) ### AIC is not an option
+```
+
+### R-Squared
+
+$R^2$ is a measure of variability in the dependent variable captured with the variables. As mentioned in the lecture, regardless of any other measures of quality, a low r-squared would indicate that our independent variables were just not appropriate. Luckily, many of our models clear .60 with and two are even over .90. This gives us some level of confidence in our model going forward. However, r-squared does not penalize multiple variables, so we cannot just choose the highest r-squared and believe we have a flexible model to approach other states with. 
+
+### Adjusted R-Squared
+
+Adjusted R-Squared is better at punishing variables included in a model that do not add much to its predictive power. Still, we have two r-squareds with over .90. Both those models, one including number of alien movies per year (featured as num_movies here) and one without, have almost equal adjusted r-squareds. Based only on this information, it would be difficult to choose a model. However, we do not want to stop at $R^2$ regardless because it is too lenient with unnecessary additions to the model. 
+
+### BIC
+
+BIC (Bayesian Information Criterion) does well with judging the best model for the observed data if one of the models up for consideration is the true model. However, the true model for how reports are submitted to the National UFO Reporting Center's website is most likely tossed up with it's ranking in Google Search Results, the number of employees/volunteers the organization has, and other factors not measured by our particular data. We are more focused on creating a working approximate model rather than the "true" model and for this reason with favor AIC.
+
+### Mallow's CP
+
+A small value of CP is associated with a relatively precise model. The smallest CP here is associated with our model that drops the number of alien movies. 
+
+```{r}
+best.fl.model <- lm(sightings_year ~ per_capita_gdp_current + breweries, data = all_florida)
+
+summary(best.fl.model)
+plot(best.fl.model$residuals)
 ```
 
 
