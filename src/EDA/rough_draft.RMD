@@ -286,7 +286,7 @@ allpossreg <- regsubsets(sightings_year ~ per_capita_gdp_current + breweries + n
 
 aprout <- summary(allpossreg)
 
-with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3)) ### AIC is not an option
+with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3))
 ```
 
 ### R-Squared
@@ -324,7 +324,7 @@ In fact, for us to put faith in our least squares regression model there are a v
 
 If these assumptions are violated, we could have multicollinearity in our models (indicating our independent variables are correlated), we could have heteroskedasticity, or patterns in the residuals suggesting missing independent variables in the models.
 
-## Pairwise Scatterplots 
+### Pairwise Scatterplots 
 
 ```{r}
 plot(all_florida)
@@ -351,13 +351,13 @@ plot(best.fl.model, which = 1)
 
 The residuals vs the fitted values show that we have a few definite outliers at point 6, 13, and 15. 
 
-## Heteroskedasticity
+### Heteroskedasticity
 ```{r}
 ols_bp_test(best.fl.model)
 ```
 The test for Breusch Pagan test fails to reject the null hyptothesis that our variance is constant, suggesting we don't have heteroskedasticity in our model. While the formal mechanical method fails to catch it, our plots suggest there may be non-constant variance in our model.
 
-## Normality
+### Normality
 
 ```{r}
 plot(best.fl.model, which = 2)
