@@ -8,7 +8,7 @@ Step 0: Read in libraries
 ```{r, message=FALSE, warning=FALSE}
 rm(list=ls())
 library(tidyverse)
-library(purrr)
+#library(purrr)
 library(data.table)
 library(janitor)
 
@@ -24,6 +24,8 @@ beer.path <- "raw/brew_count_by_state_1984_2017.csv"
 sightings.path <- "raw/ufo_sightings.csv"
 movies.path <- "raw/alien_movies_per_year.csv"
 gdp.path<- "raw/gdp_per_capita_per_year.csv"
+internet.rurality.path <- "raw/internet_by_rurality.csv"
+usafbase.path <- "raw/usaf_base_locs.csv"
 
 beer.raw <- fread(file.path(my.directory, beer.path), header=TRUE, na.strings=c("*", ""))
 
@@ -33,6 +35,9 @@ movies.raw <- fread(file.path(my.directory, movies.path), header = TRUE)
 
 gdp.raw <- fread(file.path(my.directory, gdp.path), header = TRUE)
 
+internet.rurality.raw <- fread(file.path(my.directory, internet.rurality.path), header = TRUE)
+
+usafbase.raw <- fread(file.path(my.directory, usafbase.path), header = TRUE)
 ```
 
 
@@ -50,7 +55,7 @@ beer.db <- beer.raw %>%
   mutate(state = as.factor(state)) %>% 
   gather_("year", "breweries", as.character(seq(1984, 2017))) %>% 
   mutate(breweries = as.numeric(breweries)) %>% 
-  filter(year >= 1974) %>% 
+  filter(year >= 1984) %>% 
   filter(year <= 2014) %>% 
   filter(state == "FL") %>% 
   mutate(year = as.numeric(year))
@@ -84,14 +89,30 @@ gdp.db <- gdp.raw %>%
   select(year, per_capita_gdp_current)
 ```
 
+```{r}
+internet.rurality.db <- internet.rurality.raw %>% 
+  rename(year = Year)
+```
+
+```{r}
+usafbase.db <- usafbase.raw %>% 
+  filter(State == "FL") %>% 
+  rename(state = State)
+```
+
+
+
 
 Join files together
 ```{r}
 all.florida.df <- gdp.db %>%
   left_join(movies.db, by = c("year" = "year")) %>% 
   left_join(beer.db, by=c("year" = "year")) %>% 
-  left_join(sightings.db, by=c("year" = "year"))
+  left_join(sightings.db, by=c("year" = "year")) %>% 
+  left_join(internet.rurality.db, by=c("year" = "year")) %>% 
+  mutate(state = ifelse(is.na(state), "FL", "FL"))
 ```
+
 
 
 
