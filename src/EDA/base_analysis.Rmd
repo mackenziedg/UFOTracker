@@ -49,7 +49,7 @@ base_locs <- base_locs  %>%
     group_by(State) %>%
     count() %>%
     merge(state.abb, by.x="State", by.y=1, all=T) %>%
-    mutate(n=replace(n, is.na(n), 0)) %>%
+    dplyr::mutate(n=replace(n, is.na(n), 0)) %>%
     filter(!is.na(State))
 
 df <- data.frame(sightings=sightings$n, base_count=base_locs$n, pop=state_pops, name=state.abb)
