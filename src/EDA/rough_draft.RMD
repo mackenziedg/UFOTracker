@@ -360,6 +360,21 @@ If these assumptions are violated, we could have multicollinearity in our models
 plot(all_florida)
 ```
 
+There do appear to be some non-linear associations between our variables breweries and per-capita gdp. Since these are the only two variables in our model, this creates some concern there may be some multi-collinearity. Let's see that more closely.
+
+```{r}
+plot(all_florida$per_capita_gdp_current, all_florida$breweries)
+```
+
+There definitely appears to be a pattern here. With 3 turns, it looks like it may be some cubic predictor. 
+
+Below, we plot the residuals against both our predictors. 
+```{r}
+plot(all_florida$per_capita_gdp_current,best.fl.model$residuals, main = "Residuals vs Per Capita GDP")
+
+plot(all_florida$breweries, best.fl.model$residuals, main = "Breweries Per Year")
+```
+
 
 ## Cross-Validation
 
