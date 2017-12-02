@@ -397,20 +397,12 @@ Here, we identified 5 states that were "super states" in their number of sightin
 ### Investigate Most Popular Alien Movies  
 Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
 
-# Works Cited/ Data Sources  
-
-*  Blumenthal, R. (2017, April 24). People Are Seeing U.F.O.s Everywhere, and This Book Proves It. New York Times. https://www.nytimes.com/2017/04/24/science/ufo-sightings-book.html  
-
- *  National UFO Reporting Center. (2017). [Website data] (http://www.nuforc.org/webreports.html)  
+# Works Cited/ Data Sources
+ *  Open Data Network. 2012. [Data and codebook] (https://www.opendatanetwork.com/dataset/data.hawaii.gov/qnar-gix3)  
  
- *  Open Data Network. (2012). [Data and codebook] Available from Opendatanetwork.gov Website (https://www.opendatanetwork.com/dataset/data.hawaii.gov/qnar-gix3)  
+ * National UFO Reporting Center. 2017.[Website data] (http://www.nuforc.org/webreports.html)  
  
- *  Quinton Mason. (2017). Brewery Count by State (1984 - March 31, 2017) [Data file and code book]. Available from Data.gov Website:https://catalog.data.gov/dataset/brewery-count-by-state-1984-march-31-2017  
- 
- *  Wikipedia. (2017). List of Films Featuring Extraterrestrials [Website data] Available from Wikipedia Website (https://en.wikipedia.org/wiki/List_of_films_featuring_extraterrestrials)
- 
- *  Wikipedia. (2017). List of United States Air Force Installations [Website data] Available from Wikipedia Website
- (https://en.wikipedia.org/wiki/List_of_United_States_Air_Force_installations)
+ * Wikipedia. 2017 [Website data] (https://en.wikipedia.org/wiki/List_of_films_featuring_extraterrestrials)
  
  
  
