@@ -19,7 +19,7 @@ fontsize: 11pt
 
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 library(ggplot2)
@@ -251,7 +251,8 @@ plot(residuals)
 This definitely does not appear to have no pattern! We could easily draw a curve fitting this data. The variance increases the further we go through the function. Because of the pattern in the error, believe there are other variables in the true model that we're currently missing. This isn't terrible news, because we certainly plan on adding more!
 
 
-## Mean Distance From Military Base Location
+## Mean Distance From Military Base Location  
+
 
 ## Per Capita GDP
 
@@ -403,7 +404,7 @@ Still, understanding we may not have created a model allowing for statistical in
 ## Future Work  
 
 ### Implementing Advanced Spatial-Temporal & Time-Series Models  
-With the limited scope of our understanding of statistics, we are unable to compare all 5 explanatory factors with the predicted variable, sightings per year. As we learn more advanced statistical techniques, we can come back to this analysis and improve on modelling with spatial and time dependencies.  
+With the limited scope of our understanding of statistics, we are unable to compare all five explanatory factors with the predicted variable, sightings per year. As we learn more advanced statistical techniques, we can come back to this analysis and improve on modelling with spatial and time dependencies.  
 
 ### Greater Sample Size
 
@@ -416,4 +417,12 @@ Here, we identified 5 states that were "super states" in their number of sightin
 ### Investigate Most Popular Alien Movies  
 Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
 
-# Works Cited  
+# Works Cited/ Data Sources
+ *  Open Data Network. 2012. [Data and codebook] (https://www.opendatanetwork.com/dataset/data.hawaii.gov/qnar-gix3)  
+ 
+ * National UFO Reporting Center. 2017.[Website data] (http://www.nuforc.org/webreports.html)  
+ 
+ * Wikipedia. 2017 [Website data] (https://en.wikipedia.org/wiki/List_of_films_featuring_extraterrestrials)
+ 
+ 
+ 
