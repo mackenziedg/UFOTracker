@@ -15,10 +15,6 @@ urlcolor: blue
 fontsize: 11pt 
 ---
 
-
-
-
-
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
@@ -26,6 +22,7 @@ library(ggplot2)
 library(data.table)
 library(tidyr)
 library(leaps)
+library(olsrr)
 ```
 
 # Introduction
@@ -53,8 +50,6 @@ Alcohol inhibits our perceptions. If you've been out drinking, perhaps you're mo
 How does culture affect people's perceptions of the "supernatural"? When trailers for alien movies have been playing on TV particularly frequently for a given year, are you more likely to have aliens playing in the back of your mind when you see something in the sky you can't explain? Does watching sci-fi movies make it more likely that you turn to an organization like the UFO Reporting Center when something bright is in the sky?
 
 Scraping for the number of alien movies released a year would be difficult, but luckily [wikipedia](https://en.wikipedia.org/wiki/List_of_films_featuring_extraterrestrials) has a list already compiled. While there is no way the list could be complete, it features movies from years as far back as 1902. The wikipedia table was scraped and turned into a csv file and a simple python script was written to bin the frequency of movies by year to create the final dataset.
-
-## Mean Distance from Military Base Location
 
 ## Per Capita GDP
 
@@ -128,7 +123,6 @@ florida.brew.df <- beer.df %>%
 florida.brew.df
 
 plot(florida.brew.df$year, florida.brew.df$breweries)
-
 ```
 
 
@@ -145,7 +139,6 @@ fl.sightings <- sightings.raw %>%
   #group_by(year) %>% 
   count(year) %>% 
   rename(sightings_year = n)
-
 ```
 
 Let's take a snapshot of sightings per year in Florida.  
@@ -162,28 +155,7 @@ par(new=TRUE)
 plot(fl.sightings$year, fl.sightings$sightings_year, type="l", col="orange")
 legend("topleft",legend=c("Breweries", "Sightings"),
        col=c("blue", "orange"), lty=1:2, cex=0.8)
-
 ```
-
-
-In order to stabilize the variance, we will transform the data with a log transformation. Notice how the the residuals do not vary as much and the variance is closer to constant now.  
-
-```{r}
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Alien Movies Per Year
@@ -200,7 +172,6 @@ One big problem right off the bat - a lot of the early years are only zeros. Aft
 
 Luckily, since the UFO reporting society was founded in 1974, we decided to remove all variables prior to this year. Reports before this year appear in the dataset, but as discussed above we determined these reports would not be live records. They would be "popular" events that were recorded after the fact, or incidents reported years after they happened. Let's see if that improves the look of our scatterpplot.
 
-
 ```{r}
 alien_movies_new <- filter(alien_movies, year >= 1974)
 
@@ -214,7 +185,6 @@ Still a definite trend upwards. That could have to do with the number of movies 
 Anyway, we have to filter the sightings dataset to find more specific information about our dataset. Currently we can't compare the number of movies to our number of sightings. Let's filter the dataset down to sightings taking place in Florida since 1974 and see how they compare to the number of movies released each year. 
 
 ```{r}
-
 fl_sightings <- filter(sightings, tolower(state) == 'fl' )
 fl_sightings$date_time <- as.Date(fl_sightings$date_time, "%m/%d/%y")
 tmp <- lapply(strsplit(as.character(fl_sightings$date_time), "-"), `[[`, 1)
@@ -249,9 +219,6 @@ plot(residuals)
 ```
 
 This definitely does not appear to have no pattern! We could easily draw a curve fitting this data. The variance increases the further we go through the function. Because of the pattern in the error, believe there are other variables in the true model that we're currently missing. This isn't terrible news, because we certainly plan on adding more!
-
-
-## Mean Distance From Military Base Location
 
 ## Per Capita GDP
 
@@ -383,10 +350,21 @@ The residuals vs the fitted values show that we have a few definite outliers at 
 
 ## Heteroskedasticity
 ```{r}
-library(olsrr)
 ols_bp_test(best.fl.model)
 ```
-The test for Breusch Pagan test fails to reject the null hyptothesis that our variance is constant, suggesting we don't have heteroskedasticity in our model. While the formal mechanical method fails to catch it, our plots suggest there may be non-constant variance in our model. 
+The test for Breusch Pagan test fails to reject the null hyptothesis that our variance is constant, suggesting we don't have heteroskedasticity in our model. While the formal mechanical method fails to catch it, our plots suggest there may be non-constant variance in our model.
+
+## Normality
+
+```{r}
+plot(best.fl.model, which = 2)
+
+shapiro.test(residuals(best.fl.model))
+```
+
+The QQ-plot does not look good. The Shapiro-Wilk test just barely fails to reject the null hypothesis that the data are sampled from a normally distributed population. So the test suggests the data are normal, but what we observe in the Normal Q-Q plot. As we have a small sample, it makes sense that our test might fail to reject the null hypothesis due to random variation expected in the sample anyway. 
+
+
 
 ## Cross-Validation
 
