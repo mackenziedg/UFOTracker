@@ -362,6 +362,10 @@ plot(best.fl.model$residuals)
 ### Implementing Advanced Spatial-Temporal & Time-Series Models  
 With the limited scope of our understanding of statistics, we are unable to compare all 5 explanatory factors with the predicted variable, sightings per year. As we learn more advanced statistical techniques, we can come back to this analysis and improve on modelling with spatial and time dependencies.  
 
+### Greater Sample Size
+
+The number of sightings was healthy, over 80,000 reports filed. However, the amount of
+
 ### Investigate Most Popular Alien Movies  
 Instead of using alien movies per year, we might use the amount of money grossed in aliens films per year. This would give a greater indicator of a film's affect on the popular consciousness. A movie like "Aliens"" surely had a greater effect than "Mars Needs Moms", for example. Our current scraping of the data, relying on each movie as a equally effective unit and simply counting the number of movies per year is likely missing a lot of that information. 
 
