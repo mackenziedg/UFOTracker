@@ -45,10 +45,10 @@ beer.db <- beer.raw %>%
   filter(STATE != "Total") %>% 
   filter(STATE != "Other") %>% 
   filter(STATE != "* No reportable data") %>% 
-  filter(STATE != "«This list will be updated quarterly.") %>% 
+  filter(STATE != "«This list will be updated quarterly.") %>% ß
   rename(state = STATE) %>% 
   mutate(state = as.factor(state)) %>% 
-  gather_("year", "breweries", as.character(seq(1984, 2017))) %>% 
+  gather_("year", "breweries", as.character(seq(1974, 2017))) %>% 
   mutate(breweries = as.numeric(breweries)) %>% 
   filter(year >= 1974) %>% 
   filter(year <= 2014) %>% 
@@ -98,6 +98,5 @@ all.florida.df <- gdp.db %>%
 Step 4: Write out
 ```{r}
 write_csv(all.florida.df, "raw/all_florida.csv")
-
 
 ```
