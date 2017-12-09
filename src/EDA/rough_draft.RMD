@@ -180,6 +180,10 @@ legend("topleft",legend=c("Breweries", "Sightings"),
 alien_movies <- read.csv(file = "../../data/raw/alien_movies_per_year.csv", header = TRUE)
 sight <- read.csv(file = "../../data/raw/ufo_sightings.csv", header = TRUE)
 
+all_movies <- read.csv(file = "../../data/raw/number_of_movies_per_year.csv", head = TRUE)
+
+all_movies <- all_movies[nrow(all_movies):1,]
+
 ggplot(alien_movies, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1902 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
 ```
 
@@ -189,8 +193,9 @@ Luckily, since the UFO reporting society was founded in 1974, we decided to remo
 
 ```{r}
 alien_movies_new <- filter(alien_movies, year >= 1974)
+alien_movies_new <- filter(alien_movies_new, year < 2018)
 
-
+alien_movies_new$num_movies <- alien_movies_new$num_movies/all_movies$total_movies
 ggplot(alien_movies_new, aes(x =year, y =num_movies )) + geom_point(shape=1) + labs( title = "Number of Alien Movies Per Year\n1974 - 2018", x = "Year", y = "Alien Movies Released") + theme(plot.title = element_text(hjust = 0.5))
 
 ```
