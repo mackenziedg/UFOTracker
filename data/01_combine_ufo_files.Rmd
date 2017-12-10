@@ -38,6 +38,7 @@ internet.rurality.path <- "raw/internet_by_rurality.csv"
 usafbase.path <- "raw/usaf_base_locs.csv"
 statepops.path <- "raw/state_pops.csv"
 sightings.path <- "raw/ufo_sightings.csv"
+allmovies.path <- "/raw/number_of_movies_per_year.csv"
 
 beer.raw <- fread(file.path(my.directory, beer.path), header=TRUE, na.strings=c("*", ""))
 
@@ -49,9 +50,15 @@ gdp.raw <- fread(file.path(my.directory, gdp.path), header = TRUE)
 
 internet.rurality.raw <- fread(file.path(my.directory, internet.rurality.path), header = TRUE)
 
-usafbase.raw <- fread(file.path(my.directory, usafbase.path), header = TRUE)
+usafbase.raw <- fread(file.path(my.directory, usafbase.path), header = TRUE, na.strings = c(""))
 
 statepops.raw <- fread(file.path(my.directory, statepops.path), header = TRUE)
+
+#all_movies <- read.csv(file = "../../data/raw/number_of_movies_per_year.csv", head = TRUE)
+allmovies.raw <- fread(file.path(my.directory, allmovies.path), header = TRUE)
+
+
+
 
 ```
 
@@ -67,12 +74,12 @@ beer.db <- beer.raw %>%
   filter(STATE != "* No reportable data") %>% 
   filter(STATE != "«This list will be updated quarterly.") %>% 
   rename(state = STATE) %>% 
-  mutate(state = as.factor(state)) %>% 
-  gather_("year", "breweries", as.character(seq(1984, 2016))) %>% 
-  mutate(breweries = as.numeric(breweries)) %>% 
-  filter(year >= 1984) %>% 
-  filter(year <= 2016) %>% 
-  #filter(state == "FL") %>% 
+  mutate(state = as.factor(state)) %>%
+  gather_("year", "breweries", as.character(seq(1984, 2017))) %>%
+  mutate(breweries = as.numeric(breweries)) %>%
+  filter(year >= 1984) %>%
+  filter(year <= 2016) %>%
+  # filter(state == "FL") %>%
   mutate(year = as.numeric(year))
   
 ```
@@ -125,8 +132,8 @@ sightings.db <- sightings.raw %>%
 ```{r}
 sightings.db2 <- sightings.db %>% 
   left_join(statepops.db, by = c("decade" = "year", "name" = "Name")) %>% 
-  mutate((num_sightings/population) * 1000)
-  #select(-n)
+  mutate(sightings_per_100k = ((num_sightings/population) * 100000)) %>% 
+  select(year, state, region, sightings_per_100k)
 
 ```
 
@@ -146,11 +153,39 @@ sightings.db2 <- sightings.db %>%
 
 
 
+
+
+
+
+
+
+
+# Normalize Movies By Total Movies That Year
+```{r}
+#all_movies <- allmovies.raw[nrow(allmovies.raw):1,]
+allmovies.raw %>% 
+  filter(year >= 1974) %>% 
+  filter(year <= 2016)
+
+```
+
+divide number of alien mobies that year divide by total box office movies that came out that year.
+
+The number is small, so interepretability may be an issue here. Careful!  
 ```{r}
 movies.db <- movies.raw %>% 
   filter(year >= 1974) %>% 
-  filter(year <= 2016)
+  filter(year <= 2016) %>% 
+  left_join(allmovies.raw, by=c("year"="year")) %>% 
+  mutate(alienmovies_per_year = num_movies/total_movies) %>% 
+  select(year, alienmovies_per_year)
 ```
+
+
+
+
+
+
 
 
 ```{r}
@@ -169,28 +204,43 @@ internet.rurality.db <- internet.rurality.raw %>%
 ```{r}
 usafbase.db <- usafbase.raw %>% 
   #filter(State == "FL") %>% 
-  rename(state = State)
-```
+  # rename(state = State) %>% 
+  group_by(State) %>%
+  count() %>%
+  merge(state.abb, by.x="State", by.y=1, all=T) %>%
+  mutate(n=replace(n, is.na(n), 0)) %>%
+  filter(!is.na(State)) %>% 
+  rename(afbase_per_state = n)
+``` 
+
+
+
 
 
 
 
 Join files together
 ```{r}
-all.states.normalized.ßdf <- sightings.db2 %>% 
+all.states.normalized.df <- sightings.db2 %>% 
   left_join(beer.db, by=c("year" = "year", "state"= "state")) %>% 
-  left_join(gdp.db, by = c("year" = "year")) %>% 
+  left_join(gdp.db, by = c("year" = "year")) %>%
   left_join(movies.db, by = c("year" = "year")) %>% 
-  #left_join(sightings.db, by=c("year" = "year", "state = state")) %>% 
-  #left_join(beer.db, by=c("year" = "year", "state =  state")) %>% 
-  left_join(internet.rurality.db, by=c("year" = "year")) #%>% 
-  #mutate(state = ifelse(is.na(state), "FL", "FL"))
+  left_join(internet.rurality.db, by=c("year" = "year")) %>% 
+  left_join(usafbase.db, by=c("state" = "state")
 ```
 
 
+```{r}
+#left_join(sightings.db, by=c("year" = "year", "state = state")) %>% 
+  #left_join(beer.db, by=c("year" = "year", "state =  state")) %>% 
+
+
+# older parts of dataframe reserved only for chooisng one state
+#mutate(state = ifelse(is.na(state), "FL", "FL"))
+```
 
 
 Step 4: Write out
 ```{r}
-write_csv(all.states.df, "raw/all_states_normalized.csv")
+write_csv(all.states.normalized.df, "raw/all_states_normalized.csv")
 ```
