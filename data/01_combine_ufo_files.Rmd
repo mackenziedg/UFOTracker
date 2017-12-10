@@ -210,7 +210,8 @@ usafbase.db <- usafbase.raw %>%
   merge(state.abb, by.x="State", by.y=1, all=T) %>%
   mutate(n=replace(n, is.na(n), 0)) %>%
   filter(!is.na(State)) %>% 
-  rename(afbase_per_state = n)
+  rename(afbase_per_state = n) %>% 
+  rename(state = State)
 ``` 
 
 
@@ -223,10 +224,10 @@ Join files together
 ```{r}
 all.states.normalized.df <- sightings.db2 %>% 
   left_join(beer.db, by=c("year" = "year", "state"= "state")) %>% 
-  left_join(gdp.db, by = c("year" = "year")) %>%
   left_join(movies.db, by = c("year" = "year")) %>% 
+  left_join(gdp.db, by = c("year" = "year")) %>%
   left_join(internet.rurality.db, by=c("year" = "year")) %>% 
-  left_join(usafbase.db, by=c("state" = "state")
+  left_join(usafbase.db, by=c("state" = "state"))
 ```
 
 
