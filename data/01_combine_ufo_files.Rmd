@@ -28,7 +28,8 @@ library(noncensus)
 Step 2: Read in files
 ```{r}
 my.directory <- "~/Google Drive/stat/UFOTracker/data"
-setwd(my.directory)
+# setwd(my.directory)
+setwd("~/Google Drive/stat/UFOTracker/data")
 
 beer.path <- "raw/brew_count_by_state_1984_2017.csv"
 movies.path <- "raw/alien_movies_per_year.csv"
@@ -82,44 +83,56 @@ data(states)
 ```
 
 ```{r}
+# x = statepops.db$year 
+# x - (x %% 10)
+```
+
+```{r}
 statepops.db <- statepops.raw %>% 
   #gather_("Name", "year", "population")
   gather_("year", "population", as.character(seq(1960,2010,10))) %>% 
   filter(Name %in% state.name) %>% 
-  mutate(year = as.integer(year))
-  
+  mutate(year = as.integer(year)) %>% 
+  mutate(population = as.numeric(gsub(",", "", population)))
+  # mutate(population = as.integer(population))
+  # gsub(",", "", population)
+  # mutate(population = as.numeric(gsub(",", "", population))
   
 ```
+
+```{r}
+#statepops.db2 <- statepops.db 
+```
+
 
 ```{r}
 sightings.db <- sightings.raw %>% 
   #filter(state=='FL') %>% 
   mutate(state = toupper(state)) %>% 
   mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
+  filter(state %in% state.abb) %>% 
   filter(year >= 1974) %>% 
   filter(year <= 2016) %>%
   count(year, state) %>% 
-  filter(state %in% state.abb) %>% 
-  left_join(states, by = c("state" = "state")) %>% 
-  select(-area, -population, -division, -capital) %>% 
-  mutate(decade = year - (year %% 10)) 
-         #, -name)
+  rename(num_sightings = n) %>%
+  left_join(states, by = c("state" = "state")) %>%
+  select(-area, -population, -division, -capital) %>%
+  mutate(decade = year - (year %% 10))
 
 ```
 
-
+### Normalize the number of sightings by the population of each state df$sightings_per_thousand <- (df$sightings / df$pop) * 1000
 ```{r}
 sightings.db2 <- sightings.db %>% 
-  left_join(statepops.db, by = c("decade" = "year"))
+  left_join(statepops.db, by = c("decade" = "year", "name" = "Name")) %>% 
+  mutate((num_sightings/population) * 1000)
+  #select(-n)
 
 ```
 
 
 
-```{r}
-x = statepops.db$year 
-x - (x %% 10)
-```
+
 
 
 ```{r}
@@ -164,7 +177,7 @@ usafbase.db <- usafbase.raw %>%
 
 Join files together
 ```{r}
-all.states.df <- sightings.db %>% 
+all.states.normalized.ßdf <- sightings.db2 %>% 
   left_join(beer.db, by=c("year" = "year", "state"= "state")) %>% 
   left_join(gdp.db, by = c("year" = "year")) %>% 
   left_join(movies.db, by = c("year" = "year")) %>% 
@@ -179,5 +192,5 @@ all.states.df <- sightings.db %>%
 
 Step 4: Write out
 ```{r}
-write_csv(all.states.df, "raw/all_states.csv")
+write_csv(all.states.df, "raw/all_states_normalized.csv")
 ```
