@@ -12,6 +12,7 @@ library(tidyverse)
 library(data.table)
 library(janitor)
 library(noncensus)
+library(zoo)
 #library(plyr)
 
 #library(lmtest)
@@ -39,6 +40,8 @@ usafbase.path <- "raw/usaf_base_locs.csv"
 statepops.path <- "raw/state_pops.csv"
 sightings.path <- "raw/ufo_sightings.csv"
 allmovies.path <- "/raw/number_of_movies_per_year.csv"
+statepops3.path <- "raw/statepops.db3.csv"
+
 
 beer.raw <- fread(file.path(my.directory, beer.path), header=TRUE, na.strings=c("*", ""))
 
@@ -57,7 +60,7 @@ statepops.raw <- fread(file.path(my.directory, statepops.path), header = TRUE)
 #all_movies <- read.csv(file = "../../data/raw/number_of_movies_per_year.csv", head = TRUE)
 allmovies.raw <- fread(file.path(my.directory, allmovies.path), header = TRUE)
 
-
+statepops3.raw <- fread(file.path(my.directory, statepops3.path), header = TRUE)
 
 
 ```
@@ -107,8 +110,40 @@ statepops.db <- statepops.raw %>%
   
 ```
 
+
 ```{r}
-#statepops.db2 <- statepops.db 
+statepops.db2 <- statepops.raw %>% 
+  filter(Name %in% state.name)  
+
+statepops.db3 <- data.frame(t(statepops.db2))
+```
+
+```{r}
+yrs <- as.year(1974:2016)
+
+statepops.db3[1,]
+
+# filter_(statepops.db3, Name)
+
+# colnames(statepops.db3) <- statepops.db3[1,]
+# colnames(statepops.db3)
+
+# View(zoo(statepops.db3))
+  
+# View(statepops3.raw)
+zd <- zoo(select(statepops3.raw, -year), statepops3.raw$year)
+zi <- zoo(NA, as.year(yrs))
+
+z <- merge(zd, zi)
+z[-zi,]
+
+
+interp <- na.approx(z[,"Alabama"])
+
+
+
+#library(datetime)
+
 ```
 
 
@@ -245,3 +280,10 @@ Step 4: Write out
 ```{r}
 write_csv(all.states.normalized.df, "raw/all_states_normalized.csv")
 ```
+
+
+
+```{r}
+write_csv(statepops.db3, "raw/statepops.db3.csv")
+```
+
