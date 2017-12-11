@@ -69,6 +69,6 @@ ax.contourf(y[:-1], x[:-1], gaussian_filter(np.power(H, scale), sigma=sigma), al
 # So because we're scaling the output for visualization purposes, showing the actual values on the colorbar is useless since they're the n-th root of the true values. There doesn't seem to be a way to replace the ticks so I guess there's no scale :(
 ax.grid(False)
 ax.axis('off')
-ax.set_title('UFO Sightings in the USA since 1974\nAs reported to NUFORC')
+# ax.set_title('UFO Sightings in the USA since 1974\nAs reported to NUFORC')
 plt.savefig('./ufo_density_plot.png', bbox_inches='tight', dpi=300)
 plt.show()
