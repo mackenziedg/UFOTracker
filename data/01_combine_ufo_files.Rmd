@@ -6,7 +6,6 @@ output: html_document
 Step 0: Read in libraries 
 
 ```{r, message=FALSE, warning=FALSE}
-
 PROJ_DIR <- '/home/noah/Documents/DS HW/UFOTracker/data'
 
 knitr::opts_chunk$set(echo = TRUE)
@@ -24,7 +23,7 @@ lib('data.table')
 lib('janitor')
 lib('noncensus')
 lib('zoo')
-lib('plyr')
+lib('dplyr')
 lib('datetime')
 
 #lib(purrr)
@@ -38,6 +37,7 @@ lib('datetime')
 
 Step 2: Read in files
 ```{r}
+
 beer.path <- "raw/brew_count_by_state_1984_2017.csv"
 movies.path <- "raw/alien_movies_per_year.csv"
 gdp.path<- "raw/gdp_per_capita_per_year.csv"
@@ -127,7 +127,8 @@ statepops.db3 <- data.frame(t(statepops.db2))
 
 ```{r}
 yrs <- 1970:2016
-yrs <- zoo(NA, as.year(yrs))
+
+yrs <- zoo(NA, datetime::as.year(yrs))
 
 zpops <- zoo(select(statepops3.raw, -year), as.year(statepops3.raw$year))
 
@@ -231,7 +232,7 @@ all.states.normalized.df <- sightings.db2 %>%
     left_join(interps, by=c("year"="year", "state"="variable")) %>%
     dplyr::rename(population=value) %>%
     mutate(normalized_afb_count=afbase_per_state/population*1000000) %>%
-    select(one_of("year", "region", "sightings_per_100k", "alienmovies_per_year", "per_capita_gdp_current", "internet_avg", "internet_urban", "internet_suburban", "internet_rural", "normalized_afb_count"))
+    select(one_of("state", "year", "region", "sightings_per_100k", "alienmovies_per_year", "per_capita_gdp_current", "internet_avg", "internet_urban", "internet_suburban", "internet_rural", "normalized_afb_count"))
 
 all.states.normalized.df[is.na(all.states.normalized.df)] = 0
 ```
