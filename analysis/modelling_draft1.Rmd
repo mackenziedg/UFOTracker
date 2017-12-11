@@ -1,0 +1,73 @@
+---
+title: "Modelling Draft 1"
+author: "Fan Chow"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(data.table)
+library(dplyr)
+library(noncensus)
+```
+
+```{r}
+setwd("~/Google Drive/stat/UFOTracker/analysis")
+
+my.directory <- "~/Google Drive/stat/UFOTracker"
+all.states.normalized.path <- "data/raw/all_states_normalized.csv"
+
+all.states.normalized.raw <- fread(file.path(my.directory, all.states.normalized.path))
+```
+
+
+Filter out a smaller range of years for the dataset  
+```{r}
+all.states.normalized.db <- all.states.normalized.raw %>%
+  mutate(year = as.numeric(year)) %>% 
+  filter(year >= 1984) %>% 
+  filter(year <= 2014) %>% 
+  mutate(state = as.factor(state)) %>% 
+  mutate(region = as.factor(region))
+```
+
+
+Try modelling with the smaller range of years and correct factor data types for categorical variables  
+```{r}
+# ufo.fit <- lm(sightings_per_100k ~ ., data = all.states.normalized.db)
+ufo.fit <- lm(sightings_per_100k ~ region + year + breweries +
+    afbase_per_state + per_capita_gdp_current, data = all.states.normalized.db)
+
+# lm(formula = sightings_per_100k ~ region + year + breweries + 
+    # afbase_per_state + per_capita_gdp_current, data = all_years)
+
+summary(ufo.fit)
+```
+
+
+
+```{r}
+data("states")
+table(states$region)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
