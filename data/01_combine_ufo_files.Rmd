@@ -126,10 +126,14 @@ zpops <- zoo(select(statepops3.raw, -year), as.year(statepops3.raw$year))
 z <- merge(yrs, zpops)
 z <- z[,colnames(z) != "yrs"]
 interps <- na.spline(z)
+interps <- as.data.frame(interps)
+interps$year <- rownames(interps)
+write_csv(interps, "./raw/interpolated_pops.csv")
 ```
 
 
 ```{r}
+sightings.raw <- read_csv("./raw/ufo_sightings.csv")
 sightings.db <- sightings.raw %>% 
   #filter(state=='FL') %>% 
   mutate(state = toupper(state)) %>% 
@@ -147,11 +151,14 @@ sightings.db <- sightings.raw %>%
 
 ### Normalize the number of sightings by the population of each state df$sightings_per_thousand <- (df$sightings / df$pop) * 1000
 ```{r}
-sightings.db2 <- sightings.db %>% 
-  left_join(statepops.db, by = c("decade" = "year", "name" = "Name")) %>% 
-  mutate(sightings_per_100k = ((num_sightings/population) * 100000)) %>% 
+interps <- melt(interps)
+interps$year <- as.double(interps$year)
+sightings.db2 <- as.data.frame(sightings.db) %>% 
+  left_join(interps, by=c("year"="year", "name"="variable")) %>% 
+  mutate(sightings_per_100k=((num_sightings/value) * 100000)) %>% 
   select(year, state, region, sightings_per_100k)
 
+write_csv(sightings.db2, "./raw/sightings_db2.csv")
 ```
 
 
