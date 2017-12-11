@@ -308,11 +308,11 @@ Since we're choosing to only model Florida as a time series, the base distance f
 ```{r}
 all_years <- read.csv(file ="../../data/raw/all_states_normalized.csv")
 #shave of 2016 for test set
-all_years_training <- filter(all_years, year < 2016)
-all_years_test <- filter(all_years, year >= 2016)
-all.years.lm <- lm(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year,data = all_years_training)
+all_years_training <- filter(all_years, year < 2014)
+all_years_test <- filter(all_years, year >= 2014)
+all.years.lm <- lm(sightings_per_100k ~ region + year + normalized_afb_count + per_capita_gdp_current + alienmovies_per_year,data = all_years_training)
 
-allpossreg <- regsubsets(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year, data = all_years_training, nbest=6)
+allpossreg <- regsubsets(sightings_per_100k ~ region + year + normalized_afb_count + per_capita_gdp_current + alienmovies_per_year, data = all_years_training, nbest=6)
 
 aprout <- summary(allpossreg)
 
@@ -324,7 +324,14 @@ ggplot(all_years_training, aes(x =seq(1, length(alienmovies_per_year)), y = per_
 
 ggplot(all_years_training, aes(x = per_capita_gdp_current, y = sightings_per_100k)) + geom_point(shape=20, colour = all_years_training$year) + labs( title = "GDP Per Year Vs Sightings\n1974 - 2015", x = "GDP Per Capita", y = "UFO Sightings") + theme(plot.title = element_text(hjust = 0.5))
 
+best.lm <- lm(sightings_per_100k ~ region + year + per_capita_gdp_current + alienmovies_per_year, data = all_years_training)
+summary(best.lm)
 
+autoplot(best.lm)
+yhat <- predict(best.lm, all_years_test)
+
+error <- (all_years_test$sightings_per_100k - yhat)
+plot(error)
 ```
 
 ### R-Squared
