@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(dplyr)
 library(noncensus)
+library(car)
+library(MASS)
+library(leaps)
 ```
 
 ```{r}
@@ -39,10 +42,10 @@ all.states.normalized.db <- all.states.normalized.raw %>%
 Try modelling with the smaller range of years and correct factor data types for categorical variables  
 ```{r}
 # ufo.fit <- lm(sightings_per_100k ~ ., data = all.states.normalized.db)
-ufo.fit <- lm(sightings_per_100k ~ region + year + breweries +
-    afbase_per_state + per_capita_gdp_current, data = all.states.normalized.db)
+ufo.fit <- step(sightings_per_100k ~ region + year + breweries +
+    afbase_per_state + per_capita_gdp_current, data = all.states.normalized.db, direction = "both")
 
-# lm(formula = sightings_per_100k ~ region + year + breweries + 
+# lm(formula = sightings_per_100k ~ region + year + breweries +
     # afbase_per_state + per_capita_gdp_current, data = all_years)
 
 summary(ufo.fit)
@@ -52,15 +55,28 @@ summary(ufo.fit)
 
 ```{r}
 data("states")
-table(states$region)
+# table(states$region)
+table(all.states.normalized.db$region)
 ```
 
 
 
+```{r}
+plot(ufo.fit)
+```
 
 
+# Partial Regression Plot  
+```{r}
+avPlots(ufo.fit)
+```
 
 
+```{r}
+# allpossreg <- regsubsets(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year, data = all.states.normalized.db, nbest=6)
+
+# allpossreg
+```
 
 
 
