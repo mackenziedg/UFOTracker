@@ -12,7 +12,8 @@ library(tidyverse)
 library(data.table)
 library(janitor)
 library(noncensus)
-#library(plyr)
+library(zoo)
+library(plyr)
 
 #library(lmtest)
 #library(plyr)
@@ -21,16 +22,14 @@ library(noncensus)
 #library(ggrepel)
 #library(GGally)
 #library(lubridate)
-#library(zoo)
 ```
 
 
 Step 2: Read in files
 ```{r}
-my.directory <- "~/Google Drive/stat/UFOTracker/data"
+my.directory <- "~/Documents/Data_Science/Stat_Inference_I/project_1/data/"
 # setwd(my.directory)
-setwd("~/Google Drive/stat/UFOTracker/data")
-
+setwd(my.directory)
 beer.path <- "raw/brew_count_by_state_1984_2017.csv"
 movies.path <- "raw/alien_movies_per_year.csv"
 gdp.path<- "raw/gdp_per_capita_per_year.csv"
@@ -38,7 +37,9 @@ internet.rurality.path <- "raw/internet_by_rurality.csv"
 usafbase.path <- "raw/usaf_base_locs.csv"
 statepops.path <- "raw/state_pops.csv"
 sightings.path <- "raw/ufo_sightings.csv"
-allmovies.path <- "/raw/number_of_movies_per_year.csv"
+allmovies.path <- "raw/number_of_movies_per_year.csv"
+statepops3.path <- "raw/statepops.db3.csv"
+
 
 beer.raw <- fread(file.path(my.directory, beer.path), header=TRUE, na.strings=c("*", ""))
 
@@ -57,7 +58,7 @@ statepops.raw <- fread(file.path(my.directory, statepops.path), header = TRUE)
 #all_movies <- read.csv(file = "../../data/raw/number_of_movies_per_year.csv", head = TRUE)
 allmovies.raw <- fread(file.path(my.directory, allmovies.path), header = TRUE)
 
-
+statepops3.raw <- read_csv(file.path(my.directory, statepops3.path))
 
 
 ```
@@ -107,40 +108,61 @@ statepops.db <- statepops.raw %>%
   
 ```
 
+
 ```{r}
-#statepops.db2 <- statepops.db 
+statepops.db2 <- statepops.raw %>% 
+  filter(Name %in% state.name)  
+
+statepops.db3 <- data.frame(t(statepops.db2))
+```
+
+```{r}
+library(datetime)
+yrs <- 1970:2016
+yrs <- zoo(NA, as.year(yrs))
+
+zpops <- zoo(select(statepops3.raw, -year), as.year(statepops3.raw$year))
+
+z <- merge(yrs, zpops)
+z <- z[,colnames(z) != "yrs"]
+interps <- na.spline(z)
+interps <- as.data.frame(interps)
+interps$year <- rownames(interps)
+colnames(interps) <- mapvalues(colnames(interps), state.name, state.abb)
+interps <- interps %>%
+    filter(year >= 1974)
+write_csv(interps, "./raw/interpolated_pops.csv")
 ```
 
 
 ```{r}
+sightings.raw <- read_csv("./raw/ufo_sightings.csv")
 sightings.db <- sightings.raw %>% 
   #filter(state=='FL') %>% 
-  mutate(state = toupper(state)) %>% 
-  mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
-  filter(state %in% state.abb) %>% 
-  filter(year >= 1974) %>% 
-  filter(year <= 2016) %>%
-  count(year, state) %>% 
-  rename(num_sightings = n) %>%
-  left_join(states, by = c("state" = "state")) %>%
-  select(-area, -population, -division, -capital) %>%
-  mutate(decade = year - (year %% 10))
+  dplyr::mutate(state = toupper(state)) %>% 
+  dplyr::mutate(year = as.numeric(format(as.Date(date_time, format="%m/%d/%y"),"%Y"))) %>% 
+  dplyr::filter(state %in% state.abb) %>% 
+  dplyr::filter(year >= 1974) %>% 
+  dplyr::filter(year <= 2016) %>%
+  dplyr::count(year, state) %>% 
+  dplyr::rename(num_sightings = n) %>%
+  dplyr::left_join(states, by = c("state" = "state")) %>%
+  dplyr::select(-area, -population, -division, -capital) %>%
+  dplyr::mutate(decade = year - (year %% 10))
 
 ```
 
 ### Normalize the number of sightings by the population of each state df$sightings_per_thousand <- (df$sightings / df$pop) * 1000
 ```{r}
-sightings.db2 <- sightings.db %>% 
-  left_join(statepops.db, by = c("decade" = "year", "name" = "Name")) %>% 
-  mutate(sightings_per_100k = ((num_sightings/population) * 100000)) %>% 
-  select(year, state, region, sightings_per_100k)
+interps <- melt(interps)
+interps$year <- as.numeric(interps$year)
+sightings.db2 <- as.data.frame(sightings.db) %>% 
+    dplyr::left_join(interps, by=c("year"="year", "state"="variable")) %>%
+    dplyr::mutate(sightings_per_100k=((num_sightings/value) * 100000)) %>% 
+    dplyr::select(year, state, region, sightings_per_100k)
 
+write_csv(sightings.db2, "./raw/sightings_db2.csv")
 ```
-
-
-
-
-
 
 ```{r}
 # statepops.raw$Name <- mapvalues(statepops.raw$Name, state.name, state.abb)
@@ -150,20 +172,10 @@ sightings.db2 <- sightings.db %>%
 #     apply(1, mean)
 ```
 
-
-
-
-
-
-
-
-
-
-
 # Normalize Movies By Total Movies That Year
 ```{r}
 #all_movies <- allmovies.raw[nrow(allmovies.raw):1,]
-allmovies.raw %>% 
+allmovies.raw <- allmovies.raw %>% 
   filter(year >= 1974) %>% 
   filter(year <= 2016)
 
@@ -182,23 +194,17 @@ movies.db <- movies.raw %>%
 ```
 
 
-
-
-
-
-
-
 ```{r}
 gdp.db <- gdp.raw %>% 
   clean_names() %>% 
-  rename(year = year_and_category) %>% 
+  dplyr::rename(year = year_and_category) %>% 
   filter(year >= 1974) %>% 
   select(year, per_capita_gdp_current)
 ```
 
 ```{r}
 internet.rurality.db <- internet.rurality.raw %>% 
-  rename(year = Year)
+  dplyr::rename(year=Year)
 ```
 
 ```{r}
@@ -206,38 +212,35 @@ usafbase.db <- usafbase.raw %>%
   #filter(State == "FL") %>% 
   # rename(state = State) %>% 
   group_by(State) %>%
-  count() %>%
+  dplyr::count() %>%
   merge(state.abb, by.x="State", by.y=1, all=T) %>%
   mutate(n=replace(n, is.na(n), 0)) %>%
   filter(!is.na(State)) %>% 
-  rename(afbase_per_state = n) %>% 
-  rename(state = State)
+  dplyr::rename(afbase_per_state = n) %>% 
+  dplyr::rename(state = State)
 ``` 
 
 
-
-
-
-
-
-Join files together
+## Join files together
 ```{r}
 all.states.normalized.df <- sightings.db2 %>% 
-  left_join(beer.db, by=c("year" = "year", "state"= "state")) %>% 
-  left_join(movies.db, by = c("year" = "year")) %>% 
-  left_join(gdp.db, by = c("year" = "year")) %>%
-  left_join(internet.rurality.db, by=c("year" = "year")) %>% 
-  left_join(usafbase.db, by=c("state" = "state"))
+    left_join(beer.db, by=c("year" = "year", "state"= "state")) %>% 
+    left_join(movies.db, by = c("year" = "year")) %>% 
+    left_join(gdp.db, by = c("year" = "year")) %>%
+    left_join(internet.rurality.db, by=c("year" = "year")) %>% 
+    left_join(usafbase.db, by=c("state" = "state")) %>%
+    left_join(interps, by=c("year"="year", "state"="variable")) %>%
+    dplyr::rename(population=value) %>%
+    mutate(normalized_afb_count=afbase_per_state/population*1000000) %>%
+    select(one_of("year", "region", "sightings_per_100k", "alienmovies_per_year", "per_capita_gdp_current", "Urban", "Suburban", "Rural", "normalized_afb_count"))
+
+all.states.normalized.df[is.na(all.states.normalized.df)] = 0
 ```
 
 
 ```{r}
-#left_join(sightings.db, by=c("year" = "year", "state = state")) %>% 
-  #left_join(beer.db, by=c("year" = "year", "state =  state")) %>% 
-
-
-# older parts of dataframe reserved only for chooisng one state
-#mutate(state = ifelse(is.na(state), "FL", "FL"))
+all.states.normalized.df <- all.states.normalized.df %>%
+    filter(year >= 1985 & year <= 2014)
 ```
 
 
@@ -245,3 +248,10 @@ Step 4: Write out
 ```{r}
 write_csv(all.states.normalized.df, "raw/all_states_normalized.csv")
 ```
+
+
+
+```{r}
+write_csv(statepops.db3, "raw/statepops.db3.csv")
+```
+
