@@ -19,9 +19,11 @@ library(leaps)
 ```
 
 ```{r}
-setwd("~/Google Drive/stat/UFOTracker/analysis")
+my.directory <- "~/Documents/DS\ HW/UFOTracker"
 
-my.directory <- "~/Google Drive/stat/UFOTracker"
+setwd(file.path(my.directory, "analysis"))
+
+
 all.states.normalized.path <- "data/raw/all_states_normalized.csv"
 
 all.states.normalized.raw <- fread(file.path(my.directory, all.states.normalized.path))
