@@ -299,12 +299,6 @@ internet_rurality <- read.csv(file = "../../data/raw/internet_by_rurality.csv", 
 all.model <- lm(sightings_year ~ per_capita_gdp_current + breweries + num_movies, data = all_florida)
 summary(all.model)
 plot(all.model$residuals)
-
-all_years <- read.csv(file ="../../data/raw/all_states_normalized.csv")
-#shave of 2016 for test set
-all_years_training <- filter(all_years, year < 2016)
-all_years_test <- filter(all_years, year >= 2016)
-all.years.lm <- lm(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year,data = all_years_training)
 ```
 
 Unfortunately, there are several NAs in our database which makes it difficult to use all the variables in our model. Internet by rurality only exists for 2000 to 2015, which is a very small sample size. 
@@ -312,11 +306,22 @@ Unfortunately, there are several NAs in our database which makes it difficult to
 Since we're choosing to only model Florida as a time series, the base distance from an air force base will also not make sense to include in the model. 
 
 ```{r}
+all_years <- read.csv(file ="../../data/raw/all_states_normalized.csv")
+#shave of 2016 for test set
+all_years_training <- filter(all_years, year < 2016)
+all_years_test <- filter(all_years, year >= 2016)
+all.years.lm <- lm(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year,data = all_years_training)
+
 allpossreg <- regsubsets(sightings_per_100k ~ region + year + breweries + afbase_per_state + per_capita_gdp_current + alienmovies_per_year, data = all_years_training, nbest=6)
 
 aprout <- summary(allpossreg)
 
-with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3))
+#with(aprout,round(cbind(which,rsq,adjr2,cp,bic),3))
+
+ggplot(all_years_training, aes(x =seq(1, length(alienmovies_per_year)), y = alienmovies_per_year )) + geom_point(shape=20, colour = all_years_training$year) + labs( title = "Percentage of Alien Movies Per Year\n1974 - 2015", x = "Index", y = "Percentage of alien movies per year") + theme(plot.title = element_text(hjust = 0.5))
+
+ggplot(all_years_training, aes(x =seq(1, length(alienmovies_per_year)), y = per_capita_gdp_current )) + geom_point(shape=20, colour = all_years_training$year) + labs( title = "GDP Per Capita Per Year\n1974 - 2015", x = "Index", y = "GDP Per Capita") + theme(plot.title = element_text(hjust = 0.5))
+
 ```
 
 ### R-Squared
