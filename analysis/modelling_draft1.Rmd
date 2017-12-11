@@ -41,9 +41,9 @@ all.states.normalized.db <- all.states.normalized.raw %>%
 
 Try modelling with the smaller range of years and correct factor data types for categorical variables  
 ```{r}
-# ufo.fit <- lm(sightings_per_100k ~ ., data = all.states.normalized.db)
-ufo.fit <- step(sightings_per_100k ~ region + year + breweries +
-    afbase_per_state + per_capita_gdp_current, data = all.states.normalized.db, direction = "both")
+ufo.fit <- lm(sightings_per_100k ~ ., data = all.states.normalized.db)
+# ufo.fit <- step(sightings_per_100k ~ region + year + breweries +
+    # afbase_per_state + per_capita_gdp_current, data = all.states.normalized.db, direction = "both")
 
 # lm(formula = sightings_per_100k ~ region + year + breweries +
     # afbase_per_state + per_capita_gdp_current, data = all_years)
@@ -67,9 +67,20 @@ plot(ufo.fit)
 
 
 # Partial Regression Plot  
+
+## Partial Regression plots for all
 ```{r}
 avPlots(ufo.fit)
 ```
+
+## partial Regression plot for smaller model  
+```{r}
+small.fit <- lm(sightings_per_100k ~ year + afbase_per_state + per_capita_gdp_current + region,  data=all.states.normalized.db)
+summary(small.fit)
+
+avPlots(small.fit)
+```
+
 
 
 ```{r}
