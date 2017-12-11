@@ -22,7 +22,6 @@ library(zoo)
 #library(ggrepel)
 #library(GGally)
 #library(lubridate)
-#library(zoo)
 ```
 
 
@@ -31,7 +30,6 @@ Step 2: Read in files
 my.directory <- "~/Google Drive/stat/UFOTracker/data"
 # setwd(my.directory)
 setwd("~/Google Drive/stat/UFOTracker/data")
-
 beer.path <- "raw/brew_count_by_state_1984_2017.csv"
 movies.path <- "raw/alien_movies_per_year.csv"
 gdp.path<- "raw/gdp_per_capita_per_year.csv"
@@ -39,7 +37,7 @@ internet.rurality.path <- "raw/internet_by_rurality.csv"
 usafbase.path <- "raw/usaf_base_locs.csv"
 statepops.path <- "raw/state_pops.csv"
 sightings.path <- "raw/ufo_sightings.csv"
-allmovies.path <- "/raw/number_of_movies_per_year.csv"
+allmovies.path <- "raw/number_of_movies_per_year.csv"
 statepops3.path <- "raw/statepops.db3.csv"
 
 
@@ -60,7 +58,7 @@ statepops.raw <- fread(file.path(my.directory, statepops.path), header = TRUE)
 #all_movies <- read.csv(file = "../../data/raw/number_of_movies_per_year.csv", head = TRUE)
 allmovies.raw <- fread(file.path(my.directory, allmovies.path), header = TRUE)
 
-statepops3.raw <- fread(file.path(my.directory, statepops3.path), header = TRUE)
+statepops3.raw <- read_csv(file.path(my.directory, statepops3.path))
 
 
 ```
@@ -119,31 +117,15 @@ statepops.db3 <- data.frame(t(statepops.db2))
 ```
 
 ```{r}
-yrs <- as.year(1974:2016)
+library(datetime)
+yrs <- 1970:2016
+yrs <- zoo(NA, as.year(yrs))
 
-statepops.db3[1,]
+zpops <- zoo(select(statepops3.raw, -year), as.year(statepops3.raw$year))
 
-# filter_(statepops.db3, Name)
-
-# colnames(statepops.db3) <- statepops.db3[1,]
-# colnames(statepops.db3)
-
-# View(zoo(statepops.db3))
-  
-# View(statepops3.raw)
-zd <- zoo(select(statepops3.raw, -year), statepops3.raw$year)
-zi <- zoo(NA, as.year(yrs))
-
-z <- merge(zd, zi)
-z[-zi,]
-
-
-interp <- na.approx(z[,"Alabama"])
-
-
-
-#library(datetime)
-
+z <- merge(yrs, zpops)
+z <- z[,colnames(z) != "yrs"]
+interps <- na.spline(z)
 ```
 
 
