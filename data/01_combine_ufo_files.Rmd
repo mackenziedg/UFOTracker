@@ -233,7 +233,7 @@ all.states.normalized.df <- sightings.db2 %>%
     left_join(interps, by=c("year"="year", "state"="variable")) %>%
     dplyr::rename(population=value) %>%
     mutate(normalized_afb_count=afbase_per_state/population*1000000) %>%
-    select(one_of("state", "year", "region", "sightings_per_100k", "alienmovies_per_year", "per_capita_gdp_current", "Urban", "Suburban", "Rural", "normalized_afb_count"))
+    select(one_of("state", "year", "region","sightings_per_100k", "alienmovies_per_year", "per_capita_gdp_current", "Urban", "Suburban", "Rural", "normalized_afb_count"))
 
 all.states.normalized.df[is.na(all.states.normalized.df)] = 0
 ```
