@@ -52,9 +52,13 @@ autoplot(best.lm)
 yhat <- predict(best.lm, all_years_test)
 
 error <- (all_years_test$sightings_per_100k - yhat)
-plot(error)
-```
 
+#plotting the errors
+indices <- seq(1, length(error))
+error <- as.data.frame(error)
+error$indices <- seq(1, length(error$error))
+ggplot(error, aes(x = indices, y = error)) + geom_point(shape = 20) + labs( title = "Residuals on 2014", x = "Indices", y = "Error")
+```
 
 
 
