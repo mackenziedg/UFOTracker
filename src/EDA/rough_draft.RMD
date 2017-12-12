@@ -17,12 +17,20 @@ fontsize: 11pt
 
 ```{r setup, include=FALSE, warning=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-library(dplyr)
-library(ggplot2)
-library(data.table)
-library(tidyr)
-library(leaps)
-library(olsrr)
+
+lib <- function(package_name) {
+  if (!require(package_name, character.only = TRUE)) {
+    install.packages(package_name, repos = "http://cran.us.r-project.org")
+    library(package_name, character.only = TRUE)
+  }
+}
+
+lib('dplyr')
+lib('ggplot2')
+lib('data.table')
+lib('tidyr')
+lib('leaps')
+lib('olsrr')
 ```
 
 # Introduction
