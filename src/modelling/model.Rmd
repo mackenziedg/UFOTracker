@@ -17,10 +17,7 @@ lib <- function(package_name) {
 
 lib('dplyr')
 lib('ggplot2')
-lib('data.table')
-lib('tidyr')
 lib('leaps')
-lib('olsrr')
 lib('ggfortify')
 lib('GGally')
 ```
