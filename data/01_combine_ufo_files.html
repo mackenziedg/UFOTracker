@@ -224,7 +224,8 @@ colnames(internet.db) &lt;- c(&quot;year&quot;, &quot;internet_avg&quot;, &quot;
 
 statepops.db3 &lt;- data.frame(t(statepops.db2))</code></pre>
 <pre class="r"><code>yrs &lt;- 1970:2016
-yrs &lt;- zoo(NA, as.year(yrs))
+
+yrs &lt;- zoo(NA, datetime::as.year(yrs))
 
 zpops &lt;- zoo(select(statepops3.raw, -year), as.year(statepops3.raw$year))
 
@@ -306,7 +307,7 @@ allmovies.raw &lt;- allmovies.raw %&gt;%
     left_join(interps, by=c(&quot;year&quot;=&quot;year&quot;, &quot;state&quot;=&quot;variable&quot;)) %&gt;%
     dplyr::rename(population=value) %&gt;%
     mutate(normalized_afb_count=afbase_per_state/population*1000000) %&gt;%
-    select(one_of(&quot;year&quot;, &quot;region&quot;, &quot;sightings_per_100k&quot;, &quot;alienmovies_per_year&quot;, &quot;per_capita_gdp_current&quot;, &quot;internet_avg&quot;, &quot;internet_urban&quot;, &quot;internet_suburban&quot;, &quot;internet_rural&quot;, &quot;normalized_afb_count&quot;))</code></pre>
+    select(one_of(&quot;state&quot;, &quot;year&quot;, &quot;region&quot;, &quot;sightings_per_100k&quot;, &quot;alienmovies_per_year&quot;, &quot;per_capita_gdp_current&quot;, &quot;internet_avg&quot;, &quot;internet_urban&quot;, &quot;internet_suburban&quot;, &quot;internet_rural&quot;, &quot;normalized_afb_count&quot;))</code></pre>
 <pre><code>## Warning: Column `state` joining character vector and factor, coercing into
 ## character vector</code></pre>
 <pre><code>## Warning: Column `state`/`variable` joining character vector and factor,
@@ -316,7 +317,6 @@ allmovies.raw &lt;- allmovies.raw %&gt;%
     filter(year &gt;= 1985 &amp; year &lt;= 2014)</code></pre>
 <p>Step 4: Write out</p>
 <pre class="r"><code>write_csv(all.states.normalized.df, &quot;clean/all_states_normalized.csv&quot;)</code></pre>
-<pre class="r"><code>write_csv(statepops.db3, &quot;clean/statepops.db3.csv&quot;)</code></pre>
 </div>
 </div>
 

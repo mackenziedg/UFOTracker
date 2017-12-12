@@ -23,7 +23,7 @@ lib('data.table')
 lib('janitor')
 lib('noncensus')
 lib('zoo')
-lib('dplyr')
+lib('plyr')
 lib('datetime')
 
 #lib(purrr)
@@ -114,7 +114,6 @@ statepops.db <- statepops.raw %>%
   # mutate(population = as.integer(population))
   # gsub(",", "", population)
   # mutate(population = as.numeric(gsub(",", "", population))
-  
 ```
 
 
@@ -248,10 +247,3 @@ Step 4: Write out
 ```{r}
 write_csv(all.states.normalized.df, "clean/all_states_normalized.csv")
 ```
-
-
-
-```{r}
-write_csv(statepops.db3, "clean/statepops.db3.csv")
-```
-
