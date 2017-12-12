@@ -20,6 +20,7 @@ lib('ggplot2')
 lib('leaps')
 lib('ggfortify')
 lib('GGally')
+library(car)
 ```
 
 ```{r}
@@ -53,3 +54,12 @@ yhat <- predict(best.lm, all_years_test)
 error <- (all_years_test$sightings_per_100k - yhat)
 plot(error)
 ```
+
+
+
+
+```{r}
+avPlots(best.lm)
+```
+
+
